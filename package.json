@@ -1,0 +1,23 @@
+{
+  "name": "cissaorganics-backend",
+  "version": "1.0.0",
+  "description": "Cissaorganic backend API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Sowibo Technologies",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^3.0.2",
+    "body-parser": "^1.18.3",
+    "csurf": "^1.9.0",
+    "express": "^4.16.4",
+    "express-session": "^1.15.6",
+    "express-validator": "^5.3.0",
+    "jsonwebtoken": "^8.4.0",
+    "mysql": "^2.16.0",
+    "path": "^0.12.7",
+    "redis": "^2.8.0"
+  }
+}
