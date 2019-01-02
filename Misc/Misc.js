@@ -8,7 +8,7 @@ module.exports = {
         return randomID;
     },
     RandomCartID : function(){
-        var randomID = "_"+Math.random().toString(36).substring(2, 10) +"-"+ Math.random().toString(36).substring(2, 15)+""+Math.random().toString(36).substring(2, 15);
+        var randomID = Math.floor((Math.random() * 1000000000) + 1);
         return randomID;
     }
 }
