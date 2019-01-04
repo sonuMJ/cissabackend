@@ -7,6 +7,7 @@ const router = express.Router();
 
 //get all products 
 router.get("/getall", function(req, res){
+    var CARTID = misc.RandomUserCartID();
     db.query("SELECT * FROM products", function(err, result){
         if(err){
             console.log(err);

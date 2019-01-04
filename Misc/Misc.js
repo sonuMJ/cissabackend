@@ -10,6 +10,10 @@ module.exports = {
     RandomCartID : function(){
         var randomID = Math.floor((Math.random() * 1000000000) + 1);
         return randomID;
+    },
+    RandomUserCartID : function(){
+        var randomID = Math.random().toString(36).substring(2, 15).toUpperCase() + Math.random().toString(36).substring(2, 15).toUpperCase();
+        return randomID;
     }
 }
 

@@ -34,6 +34,9 @@ router.post("/addCart", function(req, res){
     */
     var KEY = req.body.key;
     var product_id = req.body.product_id;
+
+
+    
     db.query("SELECT * FROM products WHERE product_id =?",[product_id] ,function(err, _array){
         if(err){
             res.json({message:"Somthing went wrong!"});
@@ -100,7 +103,7 @@ router.post("/addCart", function(req, res){
         })
         //
     }, 100);
-    res.send("success")
+    res.json({message : "Successfully Added to cart"})
 })
 router.post("/showCart", function(req, res){
     var KEY = req.body.key;
@@ -108,7 +111,7 @@ router.post("/showCart", function(req, res){
         if(err){
             console.log(err);
         }
-        res.send(JSON.parse(result))
+        res.json({result : JSON.parse(result)})
     })
 })
 router.put("/cartQty", function(req, res){
@@ -185,8 +188,6 @@ router.delete("/cartItemRemove", function(req, res){
     var _t = [];
     var KEY = req.body.key;
     var JSON_RESULT;
-    var exist = false;
-    var position;
         client.get(KEY, function(err, result){
             if(err){
                 console.log(err);
@@ -203,8 +204,13 @@ router.delete("/cartItemRemove", function(req, res){
             }
             client.set(KEY, JSON.stringify(_t), redis.print);
         })
+        res.json({message:"deleted"}).sendStatus(200);
 })
 
+router.get("/cartid", function(req, res){
+    var k = misc.RandomUserCartID();
+    res.send(k);
+})
 
 
 module.exports = router;
