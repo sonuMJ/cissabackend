@@ -21,7 +21,10 @@ router.delete("/__d/:cart_id", function(req, res){
     })
 })
 
-router.post("/cartpost", function(req, res){
+router.post("/addCart", function(req, res){
+    var exist = false;
+    var JSON_result;
+    var position;
     var product_details = "";
     /*
         product id 
@@ -55,20 +58,43 @@ router.post("/cartpost", function(req, res){
                 client.set(KEY, JSON.stringify(_t), redis.print);
             }else{
                 var _t = [];
+                var newItem;
                 if(result){
-                    var JSON_result = JSON.parse(result);
+                    JSON_result = JSON.parse(result);
                     Object.keys(JSON_result).map((item,pos) => {
                         
                         if(JSON_result[pos].productId == product_id){
+                            exist = true;
                             console.log("we found that");
+                            position = JSON_result.indexOf(JSON_result[pos]);
+                            console.log(position);
                             
-                        }else{
-                            _t.push(JSON_result[pos]);
+                            newItem = {
+                                productId : JSON_result[pos].productId,
+                                productData : JSON_result[pos].productData,
+                                quantitiy : JSON_result[pos].quantitiy + 1
+                            }
+                                // JSON_result.splice(i, 1, newItem);
+                                // _t.push(JSON_result[i])
+                            
+                        }
+                        else{
+                            // console.log("not exist!");
+                             _t.push(JSON_result[pos]);
                         }
                     })
                 }
-                
-                _t.push(cartData);
+                if(exist){
+                    //true
+                    JSON_result.splice(position, 1, newItem);
+                    console.log(JSON_result);
+                    _t.push(JSON_result[position])
+                    
+                }else{
+                    //false
+                    console.log(JSON_result);
+                    _t.push(cartData)
+                }
                 client.set(KEY, JSON.stringify(_t), redis.print);
             }
         })
@@ -76,7 +102,7 @@ router.post("/cartpost", function(req, res){
     }, 100);
     res.send("success")
 })
-router.post("/cartget", function(req, res){
+router.post("/showCart", function(req, res){
     var KEY = req.body.key;
     client.get(KEY, function(err, result){
         if(err){
@@ -85,5 +111,100 @@ router.post("/cartget", function(req, res){
         res.send(JSON.parse(result))
     })
 })
+router.put("/cartQty", function(req, res){
+    var _t = [];
+    var KEY = req.body.key;
+    var product_id = req.body.product_id;
+    var operation = req.body.operation;
+    var JSON_RESULT;
+    var exist = false;
+    var newItem;
+    var position;
+    if(operation === 'INC'){
+        client.get(KEY, function(err, result){
+            if(err){
+                console.log(err);
+            }
+            JSON_RESULT = JSON.parse(result);
+            if(result != null){
+                Object.keys(JSON_RESULT).map((item, pos) => {
+                    if(JSON_RESULT[pos].productId == product_id){
+                        console.log("its exists");
+                        exist = true;
+                        position = JSON_RESULT.indexOf(JSON_RESULT[pos]);
+                        newItem = {
+                            productId : JSON_RESULT[pos].productId,
+                            productData : JSON_RESULT[pos].productData,
+                            quantitiy : JSON_RESULT[pos].quantitiy + 1
+                        }
+                    }else{
+                        _t.push(JSON_RESULT[pos])
+                    }
+                })
+            }
+            if(exist){
+                JSON_RESULT.splice(position, 1, newItem);
+                _t.push(JSON_RESULT[position]);
+            }
+            client.set(KEY, JSON.stringify(_t), redis.print);
+            res.send(JSON.parse(result));
+        })
+    }else if(operation === 'DEC'){
+        client.get(KEY, function(err, result){
+            if(err){
+                console.log(err);
+            }
+            JSON_RESULT = JSON.parse(result);
+            if(result != null){
+                Object.keys(JSON_RESULT).map((item, pos) => {
+                    if(JSON_RESULT[pos].productId == product_id){
+                        console.log("its exists");
+                        exist = true;
+                        position = JSON_RESULT.indexOf(JSON_RESULT[pos]);
+                        newItem = {
+                            productId : JSON_RESULT[pos].productId,
+                            productData : JSON_RESULT[pos].productData,
+                            quantitiy : JSON_RESULT[pos].quantitiy - 1
+                        }
+                    }else{
+                        _t.push(JSON_RESULT[pos])
+                    }
+                })
+            }
+            if(exist){
+                JSON_RESULT.splice(position, 1, newItem);
+                _t.push(JSON_RESULT[position]);
+            }
+            client.set(KEY, JSON.stringify(_t), redis.print);
+            res.send(JSON.parse(result));
+        })
+    }
+})
+router.delete("/cartItemRemove", function(req, res){
+    var product_id = req.body.product_id;
+    var _t = [];
+    var KEY = req.body.key;
+    var JSON_RESULT;
+    var exist = false;
+    var position;
+        client.get(KEY, function(err, result){
+            if(err){
+                console.log(err);
+            }
+            JSON_RESULT = JSON.parse(result);
+            if(result != null){
+                Object.keys(JSON_RESULT).map((item, pos) => {
+                    if(JSON_RESULT[pos].productId == product_id){
+                        
+                    }else{
+                        _t.push(JSON_RESULT[pos])
+                    }
+                })
+            }
+            client.set(KEY, JSON.stringify(_t), redis.print);
+        })
+})
+
+
 
 module.exports = router;
