@@ -45,10 +45,13 @@ router.post("/addCart", function(req, res){
     })
     
     setTimeout(() => {
+        var itemPrice = product_details[0].price;
+        
         var cartData = {
             productId: product_id,
             productData: product_details,
-            quantitiy:1
+            quantity:1,
+            total: itemPrice
         }
         client.get(KEY, function(err, result){
             if(err)
@@ -75,7 +78,8 @@ router.post("/addCart", function(req, res){
                             newItem = {
                                 productId : JSON_result[pos].productId,
                                 productData : JSON_result[pos].productData,
-                                quantitiy : JSON_result[pos].quantitiy + 1
+                                quantitiy : JSON_result[pos].quantity + 1,
+                                total : itemPrice * (JSON_result[pos].quantity + 1)
                             }
                                 // JSON_result.splice(i, 1, newItem);
                                 // _t.push(JSON_result[i])
@@ -101,7 +105,7 @@ router.post("/addCart", function(req, res){
                 client.set(KEY, JSON.stringify(_t), redis.print);
             }
         })
-        //
+    //     //
     }, 100);
     res.json({message : "Successfully Added to cart"})
 })
@@ -123,6 +127,7 @@ router.put("/cartQty", function(req, res){
     var exist = false;
     var newItem;
     var position;
+    var unitPrice;
     if(operation === 'INC'){
         client.get(KEY, function(err, result){
             if(err){
@@ -134,11 +139,13 @@ router.put("/cartQty", function(req, res){
                     if(JSON_RESULT[pos].productId == product_id){
                         console.log("its exists");
                         exist = true;
+                        unitPrice = JSON_RESULT[pos].productData[0].price;
                         position = JSON_RESULT.indexOf(JSON_RESULT[pos]);
                         newItem = {
                             productId : JSON_RESULT[pos].productId,
                             productData : JSON_RESULT[pos].productData,
-                            quantitiy : JSON_RESULT[pos].quantitiy + 1
+                            quantity : JSON_RESULT[pos].quantity + 1,
+                            total : unitPrice * (JSON_RESULT[pos].quantity + 1)
                         }
                     }else{
                         _t.push(JSON_RESULT[pos])
@@ -150,7 +157,7 @@ router.put("/cartQty", function(req, res){
                 _t.push(JSON_RESULT[position]);
             }
             client.set(KEY, JSON.stringify(_t), redis.print);
-            res.send(JSON.parse(result));
+            res.json({message : "Successfully Added to cart"})
         })
     }else if(operation === 'DEC'){
         client.get(KEY, function(err, result){
@@ -161,13 +168,15 @@ router.put("/cartQty", function(req, res){
             if(result != null){
                 Object.keys(JSON_RESULT).map((item, pos) => {
                     if(JSON_RESULT[pos].productId == product_id){
+                        unitPrice = JSON_RESULT[pos].productData[0].price;
                         console.log("its exists");
                         exist = true;
                         position = JSON_RESULT.indexOf(JSON_RESULT[pos]);
                         newItem = {
                             productId : JSON_RESULT[pos].productId,
                             productData : JSON_RESULT[pos].productData,
-                            quantitiy : JSON_RESULT[pos].quantitiy - 1
+                            quantity : JSON_RESULT[pos].quantity - 1,
+                            total : unitPrice * (JSON_RESULT[pos].quantity - 1)
                         }
                     }else{
                         _t.push(JSON_RESULT[pos])
@@ -179,7 +188,7 @@ router.put("/cartQty", function(req, res){
                 _t.push(JSON_RESULT[position]);
             }
             client.set(KEY, JSON.stringify(_t), redis.print);
-            res.send(JSON.parse(result));
+            res.json({message : "Successfully Added to cart"})
         })
     }
 })
