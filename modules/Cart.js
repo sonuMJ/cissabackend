@@ -32,7 +32,7 @@ router.post("/addCart", function(req, res){
         product detail by product id
         qty
     */
-    var KEY = req.body.key;
+    var KEY = req.headers._cid;
     var product_id = req.body.product_id;
 
 
@@ -110,7 +110,7 @@ router.post("/addCart", function(req, res){
     res.json({message : "Successfully Added to cart"})
 })
 router.post("/showCart", function(req, res){
-    var KEY = req.body.key;
+    var KEY = req.headers._cid;
     client.get(KEY, function(err, result){
         if(err){
             console.log(err);
@@ -120,7 +120,7 @@ router.post("/showCart", function(req, res){
 })
 router.put("/cartQty", function(req, res){
     var _t = [];
-    var KEY = req.body.key;
+    var KEY = req.headers._cid;
     var product_id = req.body.product_id;
     var operation = req.body.operation;
     var JSON_RESULT;
@@ -188,14 +188,14 @@ router.put("/cartQty", function(req, res){
                 _t.push(JSON_RESULT[position]);
             }
             client.set(KEY, JSON.stringify(_t), redis.print);
-            res.json({message : "Successfully Added to cart"})
+            res.json({message : "Successfully removed from cart"})
         })
     }
 })
 router.delete("/cartItemRemove", function(req, res){
     var product_id = req.body.product_id;
     var _t = [];
-    var KEY = req.body.key;
+    var KEY = req.headers._cid;
     var JSON_RESULT;
         client.get(KEY, function(err, result){
             if(err){
