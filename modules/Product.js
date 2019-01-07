@@ -141,10 +141,14 @@ router.delete("/:id", function(req, res){
 */
 router.post("/orderproducts", function(req, res){
     var KEY = req.headers._cid;
+    // var USERID /* from auth header*/;
+    var USERID = "1234";
     var JSON_RESULT=[];
     var fetched = false;
     var orderProducts = [];
     var orderId = misc.RandomOrderID();
+    var bulkSave = false;
+    var d = new Date();
     client.get(KEY, function(err, result){
         if(err){
             res.json({message: "Something went wrong!!"});
@@ -158,24 +162,45 @@ router.post("/orderproducts", function(req, res){
             
             JSON_RESULT.map(i => {
                 var order = [];
-                var d = new Date();
                 order.push(parseInt(orderId));
                 order.push(i.productId);
                 order.push(i.quantity);
                 order.push(d.getTime());
-                
                 orderProducts.push(order);
             })
-            var items = [ [ 1800423557832, 'a', 1, 1546830395392 ],
-                [ 1800423557832, 'b', 1, 1546830395393 ],
-                [ 1800423557832, 'c', 1, 1546830395393 ] ]
-            console.log(orderProducts);
-            db.query("INSERT INTO order_details(orderid,productid,quantity,date) SET ?", [items], function(err,result){
+            db.query("INSERT INTO order_details(orderid,productid,quantity,date) VALUES ?", [orderProducts], function(err,result){
                 if(err){
                     console.log(err);
+                    res.sendStatus(304);
                 }
-                console.log(result);
+                bulkSave = true;
             })
+            setTimeout(() => {
+                if(bulkSave){
+                    var orderData = {
+                        orderid:orderId,
+                        userid: USERID,
+                        date:d.getTime(),
+                        status:"not delivered"
+                    }
+                    db.query("INSERT INTO orders SET ?", [orderData], function(err, result){
+                        if(err){
+                            console.log(err);
+                            res.json({message: "Failed to add orders!!"});
+                        }
+                        if(result){
+                            client.del(KEY, function(err,reply){
+                                
+                            })
+                            res.json({message: "Success"});
+                        }else{
+                            res.json({message: "Failed to add orders!!"});
+                        }
+                    })
+                }else{
+                    res.json({message: "Failed to add orders!!"});
+                }
+            }, 100);
         }else{
             res.json({message: "No orders found!!"});
         }

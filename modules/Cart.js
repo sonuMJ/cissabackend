@@ -6,8 +6,8 @@ const db = require('../db/dbconnection');
 
 var client = redis.createClient();
 
-router.delete("/__d/:cart_id", function(req, res){
-    var c_id = req.params.cart_id;
+router.delete("/_cdel", function(req, res){
+    var c_id = req.headers._cid;
     client.del(c_id, function(err,reply){
         if(!err) {
             if(reply === 1) {
