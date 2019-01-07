@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 21, 2018 at 07:51 AM
+-- Generation Time: Jan 07, 2019 at 01:35 PM
 -- Server version: 10.1.19-MariaDB
 -- PHP Version: 5.6.28
 
@@ -19,6 +19,34 @@ SET time_zone = "+00:00";
 --
 -- Database: `cissa`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `orders`
+--
+
+CREATE TABLE `orders` (
+  `id` int(20) NOT NULL,
+  `orderid` varchar(60) NOT NULL,
+  `userid` varchar(60) NOT NULL,
+  `date` varchar(60) NOT NULL,
+  `status` varchar(60) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `order_details`
+--
+
+CREATE TABLE `order_details` (
+  `id` int(20) NOT NULL,
+  `orderid` varchar(60) NOT NULL,
+  `productid` varchar(60) NOT NULL,
+  `quantity` varchar(60) NOT NULL,
+  `date` varchar(60) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -47,7 +75,7 @@ INSERT INTO `products` (`id`, `name`, `price`, `quantity`, `img_url`, `availabil
 (17, 'cucumber', '45', '500g', 'http://www.eatbydate.com/wp-content/uploads/Cucumber.jpg', 'false', 'P_fg29-kr1zc3bfswf', 'വെള്ളരിക്ക'),
 (18, 'Beans', '24', '500g', 'https://4.imimg.com/data4/KP/UV/MY-27021573/fresh-beans-500x500.jpg', '1', 'P_hbbx-z573k445r1', 'പയർ'),
 (19, 'Onion', '36', '500g', 'https://i5.walmartimages.ca/images/Large/601/045/999999-33383601045.jpg', '1', 'P_xvqt-gfb4fmofaau', 'ഉള്ളി'),
-(20, 'Apple', '80', '1kg', 'https://i.dailymail.co.uk/i/pix/2016/03/31/17/20C936A400000578-3517655-image-a-24_1459440753386.jpg', '1', 'P_0xez-x85wvnp1tv', 'ആപ്പിൾ ');
+(20, 'Apple', '80', '1kg', 'https://i.dailymail.co.uk/i/pix/2016/03/31/17/20C936A400000578-3517655-image-a-24_1459440753386.jpg', '1', '1000', 'ആപ്പിൾ ');
 
 -- --------------------------------------------------------
 
@@ -81,6 +109,18 @@ INSERT INTO `user` (`id`, `username`, `email`, `password`, `user_id`) VALUES
 --
 
 --
+-- Indexes for table `orders`
+--
+ALTER TABLE `orders`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `order_details`
+--
+ALTER TABLE `order_details`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `products`
 --
 ALTER TABLE `products`
@@ -97,6 +137,16 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT for dumped tables
 --
 
+--
+-- AUTO_INCREMENT for table `orders`
+--
+ALTER TABLE `orders`
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
+--
+-- AUTO_INCREMENT for table `order_details`
+--
+ALTER TABLE `order_details`
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
 --
 -- AUTO_INCREMENT for table `products`
 --
