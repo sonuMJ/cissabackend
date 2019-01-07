@@ -48,7 +48,8 @@ router.post("/", function(req, res){
                 //insert into database
                 db.query("INSERT INTO user SET ?", [data], function(err,results){
                     if(err){
-                        throw err;
+                        //throw err;
+                        res.json({message : "Something went wrong. try again later!"});
                     }
                     res.status(200).json({message : "Successfully Registered!!"});
                 })

@@ -217,8 +217,8 @@ router.delete("/cartItemRemove", function(req, res){
 })
 
 router.get("/cartid", function(req, res){
-    var k = misc.RandomUserCartID();
-    res.send(k);
+    var k = '1800' + misc.RandomOrderID();
+    res.json(parseInt(k));
 })
 
 

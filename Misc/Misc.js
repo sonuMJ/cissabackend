@@ -7,8 +7,8 @@ module.exports = {
         var randomID = "P_"+Math.random().toString(36).substring(2, 6) +"-"+ Math.random().toString(36).substring(2, 15);
         return randomID;
     },
-    RandomCartID : function(){
-        var randomID = Math.floor((Math.random() * 1000000000) + 1);
+    RandomOrderID : function(){
+        var randomID = "1800" + Math.floor((Math.random() * 1000000000) + 1);
         return randomID;
     },
     RandomUserCartID : function(){

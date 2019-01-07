@@ -3,6 +3,9 @@ const db = require("../db/dbconnection");
 const misc = require("../Misc/Misc");
 const { check, validationResult } = require('express-validator/check')
 const router = express.Router();
+const redis = require('redis');
+
+var client = redis.createClient();
 
 
 //get all products 
@@ -127,6 +130,57 @@ router.delete("/:id", function(req, res){
         }
         res.status(200).json({message : "Successfully Deleted!"})
     })
+})
+
+//store multiple products
+/*
+    product id
+    qty
+    orderid
+    date
+*/
+router.post("/orderproducts", function(req, res){
+    var KEY = req.headers._cid;
+    var JSON_RESULT=[];
+    var fetched = false;
+    var orderProducts = [];
+    var orderId = misc.RandomOrderID();
+    client.get(KEY, function(err, result){
+        if(err){
+            res.json({message: "Something went wrong!!"});
+        }
+        fetched = true;
+        JSON_RESULT = JSON.parse(result);
+        
+    })
+    setTimeout(() => {
+        if(fetched){
+            
+            JSON_RESULT.map(i => {
+                var order = [];
+                var d = new Date();
+                order.push(parseInt(orderId));
+                order.push(i.productId);
+                order.push(i.quantity);
+                order.push(d.getTime());
+                
+                orderProducts.push(order);
+            })
+            var items = [ [ 1800423557832, 'a', 1, 1546830395392 ],
+                [ 1800423557832, 'b', 1, 1546830395393 ],
+                [ 1800423557832, 'c', 1, 1546830395393 ] ]
+            console.log(orderProducts);
+            db.query("INSERT INTO order_details(orderid,productid,quantity,date) SET ?", [items], function(err,result){
+                if(err){
+                    console.log(err);
+                }
+                console.log(result);
+            })
+        }else{
+            res.json({message: "No orders found!!"});
+        }
+    }, 100);
+    
 })
 
 module.exports = router;
