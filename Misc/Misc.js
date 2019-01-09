@@ -1,6 +1,7 @@
 module.exports = {
     RandomIdGen : function(){
-        var randomID = Math.random().toString(36).substring(2, 15) +"-"+ Math.random().toString(36).substring(2, 15)+Math.random().toString(36).substring(2, 15);
+        var randomID = "1400" + Math.floor((Math.random() * 10000000000) + 1);
+        //var randomID = Math.random().toString(36).substring(2, 15) +"-"+ Math.random().toString(36).substring(2, 15)+Math.random().toString(36).substring(2, 15);
         return randomID;
     },
     RandomProductID : function(){

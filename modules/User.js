@@ -28,36 +28,42 @@ router.get("/",csrfProtection, function(req, res){
 })
 
 //save user
-router.post("/", function(req, res){
+router.post("/register", function(req, res){
     var input = req.body;
     var usr_id = misc.RandomIdGen();
     var hash_pwd = "";
     bcrypt.hash(input.password, saltRounds, function(err,results){
-        hash_pwd = results;
-    })
-    setTimeout(() => {
-        var data = {
-            username: input.username,
-            email: input.email,
-            password: hash_pwd,
-            user_id: usr_id
+        if(err)
+        {
+            res.json({message : "Something went wrong!!"});
         }
-        // check is exists
-        db.query(SELECT_ID_BY_EMAIL_FROM_USERDB, [input.email],function(err, results){
-            if(results == ""){
-                //insert into database
-                db.query("INSERT INTO user SET ?", [data], function(err,results){
-                    if(err){
-                        //throw err;
-                        res.json({message : "Something went wrong. try again later!"});
+        if(results){
+            setTimeout(() => {
+                var data = {
+                    username: input.username,
+                    email: input.email,
+                    password: results,
+                    user_id: parseInt(usr_id)
+                }
+                // check is exists
+                db.query(SELECT_ID_BY_EMAIL_FROM_USERDB, [input.email],function(err, result){
+                    if(result == ""){
+                        //insert into database
+                        db.query("INSERT INTO user SET ?", [data], function(err,fetchArray){
+                            if(err){
+                                //throw err;
+                                res.json({message : "Something went wrong. try again later!"});
+                            }
+                            res.status(200).json({message : "Successfully Registered!!"});
+                        })
+                    }else{
+                        res.json({message:"User Already Exists!!"})
                     }
-                    res.status(200).json({message : "Successfully Registered!!"});
                 })
-            }else{
-                res.json({message:"User Already Exists!!"})
-            }
-        })
-    }, 100);
+            }, 100);
+        }
+    })
+    
 })
 
 //login
@@ -75,7 +81,7 @@ router.post("/login",csrfProtection, function(req, res){
                 if(vaild){
                     var token = jwt.JWTSign(results[0].user_id, results[0].username, USER_ROLE,csurf_token);
                     res.status(200).json({
-                        message : results[0].user_id,
+                        _uid : results[0].user_id,
                         token : token,
                         csrf_token : csurf_token
                     });
