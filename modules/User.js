@@ -1,5 +1,5 @@
 const express = require('express');
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const db = require("../db/dbconnection");
 const router = express.Router();
 const misc = require("../Misc/Misc");
@@ -32,10 +32,12 @@ router.post("/register", function(req, res){
     var input = req.body;
     var usr_id = misc.RandomIdGen();
     var hash_pwd = "";
-    bcrypt.hash(input.password, saltRounds, function(err,results){
+    bcrypt.genSalt(10, function(err, salt) {
+    bcrypt.hash(input.password, salt, function(err,results){
         if(err)
         {
-            res.json({message : "Something went wrong!!"});
+            console.log(err)
+            res.json({message : "Something went wrongg!!"});
         }
         if(results){
             setTimeout(() => {
@@ -63,6 +65,7 @@ router.post("/register", function(req, res){
             }, 100);
         }
     })
+})
     
 })
 
