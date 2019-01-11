@@ -11,9 +11,9 @@ router.delete("/_cdel", function(req, res){
     client.del(c_id, function(err,reply){
         if(!err) {
             if(reply === 1) {
-                res.send("deleted")
+                res.sendStatus(200);
             } else {
-                res.send("Does't exists");
+                res.sendStatus(404);
             }
         }else{
             console.log(err);
