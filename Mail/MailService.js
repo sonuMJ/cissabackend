@@ -22,7 +22,7 @@ module.exports = {
             tls: {rejectUnauthorized: false},
             auth: {
                 user: 'sonu.sowibo@gmail.com', // generated ethereal user
-                pass: 'sonu@sowibo' // generated ethereal password
+                pass: '********' // generated ethereal password
             }
         });
         // setup email data with unicode symbols
