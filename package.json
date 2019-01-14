@@ -12,11 +12,15 @@
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
     "csurf": "^1.9.0",
+    "ejs": "^2.6.1",
     "express": "^4.16.4",
     "express-session": "^1.15.6",
     "express-validator": "^5.3.0",
+    "handlebars": "^4.0.12",
+    "hogan.js": "^3.0.2",
     "jsonwebtoken": "^8.4.0",
     "mysql": "^2.16.0",
+    "nodemailer": "^5.1.1",
     "path": "^0.12.7",
     "redis": "^2.8.0"
   }

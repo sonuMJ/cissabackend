@@ -13,8 +13,8 @@ router.post("/orderbyid", function(req, res){
         var JWT_SESSION = jwtParse[0].csrf;
         var USER_ID = jwtParse[0]._i;
         if(JWT_SESSION === session){
-            //
-            db.query("SELECT * FROM orders WHERE userid = ?", [USER_ID], function(err, array){
+            //SELECT * FROM `orders` ORDER BY CAST(date as signed) DESC
+            db.query("SELECT * FROM orders WHERE userid = ? ORDER BY CAST(date as signed) DESC", [USER_ID], function(err, array){
                 if(!err){
                     res.json(array);
                 }else{
@@ -53,6 +53,36 @@ router.post("/productsbyorderid", function(req, res){
             }, 100);
             
         })
+    }
+})
+
+router.post("/cancelorder", function(req, res){
+    var orderid = req.body.orderid;
+    console.log(orderid);
+    
+    var TOKEN = req.headers.token;
+    var SESSIONID = req.headers.sessionid;
+    if(TOKEN != undefined && SESSIONID != undefined){
+        var valid_token = jwt.JWTVerify(TOKEN);
+        var TOKEN_DATA = jwt.JWTParse(TOKEN);
+        console.log(SESSIONID);
+        var cancelStatus = "cancelled";
+        if(valid_token){
+            //update status
+            db.query("UPDATE orders set status = ? WHERE orderid = ? ", [cancelStatus, orderid], function(err, result){
+                if(!err){
+                    console.log(result);
+                    
+                    res.json({message:"Order successfully cancelled"});
+                }else{
+                    console.log(err);
+                    
+                    res.json({message:"Something went wrong!!"});
+                }
+            })
+        }else{
+            res.json({message: "Failed to cancel order!!"});
+        }
     }
 })
 

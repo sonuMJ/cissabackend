@@ -6,6 +6,7 @@ const misc = require("../Misc/Misc");
 const jwt = require("../security/Jwt");
 const csurf = require('csurf');
 var session = require("express-session");
+var mailService = require('../Mail/MailService');
 
 
 const saltRounds = 10;
@@ -97,6 +98,10 @@ router.post("/login",csrfProtection, function(req, res){
             })
         }
     })
+})
+
+router.get("/sendmail", function(req, res){
+    mailService.SentEmail();
 })
 
 
