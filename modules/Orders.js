@@ -85,7 +85,60 @@ router.post("/cancelorder", function(req, res){
         }
     }
 })
+router.post("/getall",function(req,res){
+    console.log(req);
+    var startDate = req.body.start;
+    var endDate = req.body.end;
+    console.log('====================================');
+    console.log("order/getall");
+    console.log(startDate);
+    console.log(endDate);
+    
+    console.log('====================================');
 
+    db.query("SELECT order_details.id,orders.orderid,orders.userid,orders.status,order_details.productid,products.name, order_details.quantity,products.price, order_details.date FROM orders INNER JOIN order_details ON orders.orderid=order_details.orderid INNER JOIN products ON order_details.productid = products.product_id WHERE order_details.date BETWEEN ? AND ? ORDER BY IF(orders.status = 'true' , TRUE,FALSE),CAST(orders.date as SIGNED) DESC",[startDate,endDate], function(err, result){
+        if(err){
+            console.log(err);
+        }
+        res.status(200).json(result);
+    })
+})
+router.post("/getByProduct",function(req,res){
+    console.log(req);
+    var startDate = req.body.start;
+    var endDate = req.body.end;
+    console.log('====================================');
+    console.log("order/getall");
+    console.log(startDate);
+    console.log(endDate);
+    
+    console.log('====================================');
+
+    db.query("SELECT orders.userid,orders.status,order_details.productid,products.name, order_details.quantity,products.price, order_details.date,SUM(CASE WHEN orders.status = 'false' THEN order_details.quantity ELSE 0 END) AS quan FROM orders INNER JOIN order_details ON orders.orderid=order_details.orderid INNER JOIN products ON order_details.productid = products.product_id WHERE order_details.date BETWEEN ? AND ? GROUP BY order_details.productid ORDER BY quan DESC",[startDate,endDate], function(err, result){
+        if(err){
+            console.log(err);
+        }
+        res.status(200).json(result);
+    })
+})
+router.put("/status/:id", function(req, res){
+    
+    var id = req.params.id;
+    var status = req.body.status;
+    console.log(status+id);
+    var av = "";
+    if(status==1){
+        av = "true";
+    }else{
+        av = "false";
+    }
+    db.query("UPDATE orders set status = ? WHERE orderid = ?", [av, id], function(err, result){
+        if(err){
+            res.json({message:"Somthing went wrong!"});
+        }
+        res.status(200).json({message : "Successfully Changed!"})
+    })
+})
 
 
 module.exports = router;

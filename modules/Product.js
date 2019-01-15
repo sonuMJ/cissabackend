@@ -48,15 +48,30 @@ router.get("/get/:id", function(req, res){
 
 //search product
 
-router.post("/search", function(req, res){
-    var searchStr = req.body.search;
-    db.query("SELECT * FROM products WHERE name LIKE  ?",['%'+searchStr+'%'] ,function(err, result){
+// router.post("/search", function(req, res){
+//     var searchStr = req.body.search;
+//     db.query("SELECT * FROM products WHERE name LIKE  ?",['%'+searchStr+'%'] ,function(err, result){
+//         if(err){
+//             console.log(err);
+//         }
+//         res.json(result);
+//     })
+// })
+
+router.post('/search',(req,res) => {
+    console.log('\n====================================');
+    console.log("Connected to /search \t Method:POST"); 
+    var search_query = req.body.search_query;
+    console.log("Search query \t"+search_query);
+    var post_query = "SELECT * FROM products WHERE MATCH(name)AGAINST(? IN NATURAL LANGUAGE MODE)";
+    db.query(post_query,search_query, function (err, result) {
         if(err){
             console.log(err);
         }
         res.json(result);
-    })
-})
+    }); 
+    console.log('====================================');
+  });
 
 //post products
 router.post("/send",
@@ -77,7 +92,8 @@ router.post("/send",
                 img_url: input.img_url,
                 availability: input.availability,
                 product_id: product_id,
-                translated : input.translated
+                translated : input.translated,
+                category:input.category
             }
             const error = validationResult(req);
                 if(!error.isEmpty()){
@@ -102,10 +118,9 @@ router.put("/:id", function(req, res){
         name:input.name,
         price:input.price,
         quantity:input.quantity,
-        img_url: "https://i5.walmartimages.ca/images/Large/832/497/6000196832497.jpg",
-        availability: "true",
-        product_id: "PRO123",
-        translated : input.mal
+        img_url: input.img_url,
+        translated : input.translated,
+        category:input.category
     }
     db.query("UPDATE products set ? WHERE product_id = ?",[data,id], function(err, result){
         if(err){
