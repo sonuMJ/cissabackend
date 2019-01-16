@@ -7,11 +7,12 @@ const jwt = require("../security/Jwt");
 const csurf = require('csurf');
 var session = require("express-session");
 var mailService = require('../Mail/MailService');
+var dbservice = require('../db/Dbservice');
 
 
 const saltRounds = 10;
 const SELECT_ID_BY_EMAIL_FROM_USERDB = "SELECT id from user WHERE email = ?";
-const SELECT_ALL_BY_EMAIL_FROM_USERDB = "SELECT * from user WHERE email = ?";
+const SELECT_ALL_BY_EMAIL_FROM_USERDB = "SELECT * from user WHERE email = ? AND verified = 'true'";
 const USER_ROLE = 'user';
 
 router.use(session({secret:"secret", resave:false, saveUninitialized :false}));
@@ -32,6 +33,7 @@ router.get("/",csrfProtection, function(req, res){
 router.post("/register", function(req, res){
     var input = req.body;
     var usr_id = misc.RandomIdGen();
+    var Verif_code = misc.RandomUserVerificationID();
     var hash_pwd = "";
     bcrypt.genSalt(10, function(err, salt) {
     bcrypt.hash(input.password, salt, function(err,results){
@@ -46,7 +48,8 @@ router.post("/register", function(req, res){
                     username: input.username,
                     email: input.email,
                     password: results,
-                    user_id: parseInt(usr_id)
+                    user_id: parseInt(usr_id),
+                    verification_code:Verif_code
                 }
                 // check is exists
                 db.query(SELECT_ID_BY_EMAIL_FROM_USERDB, [input.email],function(err, result){
@@ -57,7 +60,8 @@ router.post("/register", function(req, res){
                                 //throw err;
                                 res.json({message : "Something went wrong. try again later!"});
                             }
-                            res.status(200).json({message : "Successfully Registered!!"});
+                            mailService.EmailVerification(input.email, input.username, Verif_code);
+                            res.status(200).json({message : "Please verify your account! verification link sended to your account!"});
                         })
                     }else{
                         res.json({message:"User Already Exists!!"})
@@ -100,8 +104,29 @@ router.post("/login",csrfProtection, function(req, res){
     })
 })
 
+router.post("/verifyaccount", function(req, res){
+    var verify_code = req.body.verify_code;
+    db.query("SELECT * FROM user WHERE verification_code = ?", [verify_code], function(err, result){
+        if(!err){
+            if(result != ""){
+                db.query("UPDATE user SET verified = ? WHERE verification_code =?",["true", verify_code], function(err, array){
+                    if(!err){
+                        res.sendStatus(200);
+                    }else{
+                        res.sendStatus(404);
+                    }
+                })
+            }
+        }else{
+            res.sendStatus(404);
+        }
+    })
+})
+
 router.get("/sendmail", function(req, res){
-    mailService.SentEmail();
+    //mailService.EmailVerification("sonu.sowibo@gmail.com","Sonu",a);
+    var d = new Date();
+    res.json(d.getDay());
 })
 
 

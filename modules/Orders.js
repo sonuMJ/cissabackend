@@ -71,8 +71,6 @@ router.post("/cancelorder", function(req, res){
             //update status
             db.query("UPDATE orders set status = ? WHERE orderid = ? ", [cancelStatus, orderid], function(err, result){
                 if(!err){
-                    console.log(result);
-                    
                     res.json({message:"Order successfully cancelled"});
                 }else{
                     console.log(err);

@@ -15,6 +15,10 @@ module.exports = {
     RandomUserCartID : function(){
         var randomID = Math.random().toString(36).substring(2, 15).toUpperCase() + Math.random().toString(36).substring(2, 15).toUpperCase();
         return randomID;
+    },
+    RandomUserVerificationID : function(){
+        var randomID = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)+ Math.random().toString(36).substring(2, 15)+ Math.random().toString(36).substring(2, 15);
+        return randomID;
     }
 }
 

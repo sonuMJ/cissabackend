@@ -5,6 +5,8 @@ const { check, validationResult } = require('express-validator/check')
 const router = express.Router();
 const redis = require('redis');
 const jwt = require("../security/Jwt");
+const mail = require('../Mail/MailService');
+const dbservice = require('../db/Dbservice');
 
 var client = redis.createClient();
 
@@ -71,6 +73,20 @@ router.post('/search',(req,res) => {
         res.json(result);
     }); 
     console.log('====================================');
+  });
+
+  router.get('/search_p/:query',(req,res) => {
+    var search_query = req.params.query;
+    if(search_query != ""){
+        db.query("SELECT * FROM products WHERE name LIKE  ?",[search_query+'%'] ,function(err, result){
+            if(err){
+                console.log(err);
+            }
+            res.json(result);
+        })
+    }else{
+        res.sendStatus(404);
+    }
   });
 
 //post products
@@ -169,6 +185,11 @@ router.delete("/:id", function(req, res){
     orderid
     date
 */
+function nextDate(dayIndex) {
+    var today = new Date();
+    today.setDate(today.getDate() + (dayIndex - 1 - today.getDay() + 7) % 7 + 1);
+    return today;
+}
 router.post("/orderproducts", function(req, res){
     var KEY = req.headers._cid;
     var TOKEN = req.headers.token;
@@ -176,7 +197,6 @@ router.post("/orderproducts", function(req, res){
     if(KEY != undefined && TOKEN != undefined && SESSIONID != undefined){
         var valid_token = jwt.JWTVerify(TOKEN);
         var TOKEN_DATA = jwt.JWTParse(TOKEN);
-        console.log(SESSIONID);
         
         if(valid_token){
             var JWT_SESSION = TOKEN_DATA[0].csrf;
@@ -209,7 +229,6 @@ router.post("/orderproducts", function(req, res){
                         })
                         db.query("INSERT INTO order_details(orderid,productid,quantity,date) VALUES ?", [orderProducts], function(err,result){
                             if(err){
-                                console.log(err);
                                 res.sendStatus(304);
                             }
                             bulkSave = true;
@@ -224,14 +243,41 @@ router.post("/orderproducts", function(req, res){
                                 }
                                 db.query("INSERT INTO orders SET ?", [orderData], function(err, result){
                                     if(err){
-                                        console.log(err);
                                         res.json({message: "Failed to add orders!!"});
                                     }
                                     if(result){
                                         client.del(KEY, function(err,reply){
                                             
                                         })
-                                        res.json({message: "Success"});
+                                        // mail
+                                        var userDetails = dbservice.UserdetailsById(USER_ID);
+                                        setTimeout(() => {
+                                            var username=''
+                                            var email='';
+                                            if(userDetails[0] != ""){
+                                                userDetails.map(i => {
+                                                    username = i[0].username,
+                                                    email = i[0].email
+                                                    
+                                                })
+                                                var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+                                                var month = months[d.getMonth()];
+                                                var time = d.getDate() +" "+month + " "+d.getFullYear();
+                                                setTimeout(() => {
+                                                    
+                                                    mail.Orderpurchase(email,username,orderId, time);
+                                                }, 1000);
+                                            
+                                            }
+                                        }, 200);
+                                        
+                                        
+                                        
+                                        
+
+
+                                        //response
+                                        res.json({message: "Successfully Purchased!!"});
                                     }else{
                                         res.json({message: "Failed to add orders!!"});
                                     }
@@ -254,6 +300,71 @@ router.post("/orderproducts", function(req, res){
         res.sendStatus(404);
     }
     
+})
+
+router.post("/reorder", function(req, res){
+    var TOKEN = req.headers.token;
+    var SESSIONID = req.headers.sessionid;
+    if(TOKEN != undefined && SESSIONID != undefined){
+        var valid_token = jwt.JWTVerify(TOKEN);
+        var TOKEN_DATA = jwt.JWTParse(TOKEN);
+        if(valid_token){
+            var USER_ID = TOKEN_DATA[0]._i;
+            var orderId = req.body.orderid;
+            var neworderId = misc.RandomOrderID();
+            var d = new Date();
+            var orderProducts = [];
+            var bulkSave = false;
+            if(orderId != ""){
+                db.query("SELECT * FROM order_details WHERE orderid = ?",[orderId], function(err, result){
+                    if(!err){
+                        result.map(i => {
+                            var order = [];
+                            order.push(parseInt(neworderId));
+                            order.push(i.productid);
+                            order.push(i.quantity);
+                            order.push(d.getTime());
+                            orderProducts.push(order);
+                        })
+                        
+                        db.query("INSERT INTO order_details(orderid,productid,quantity,date) VALUES ?", [orderProducts], function(err,result){
+                            if(err){
+                                res.sendStatus(304);
+                            }else{
+                                bulkSave = true;
+                            }
+                            
+                        })
+                        setTimeout(() => {
+                            if(bulkSave){
+                                var orderData = {
+                                    orderid:neworderId,
+                                    userid: USER_ID,
+                                    date:d.getTime(),
+                                    status:"not delivered"
+                                }
+                                db.query("INSERT INTO orders SET ?", [orderData], function(err, result){
+                                    if(err){
+                                        res.json({message: "Failed to add orders!!"});
+                                    }else{
+                                        res.json({message:"Successfully Re-ordered your purchase!!"})
+                                    }
+                                })
+                            }else{
+                                re.sendStatus(404);
+                            } 
+                        }, 200);
+                    }else{
+                        res.json({message:"no data!"})
+                    }
+                })
+            }
+        }else{
+            res.sendStatus(404);
+        } 
+    }else{
+        res.sendStatus(404);
+    }
 })
 
 module.exports = router;

@@ -57,6 +57,7 @@ router.post("/addCart", function(req, res){
             if(err)
                 console.log(err);
             
+            
             if(result == null){
                 var _t = [];
                 _t.push(cartData);
@@ -73,12 +74,11 @@ router.post("/addCart", function(req, res){
                             exist = true;
                             console.log("we found that");
                             position = JSON_result.indexOf(JSON_result[pos]);
-                            console.log(position);
                             
                             newItem = {
                                 productId : JSON_result[pos].productId,
                                 productData : JSON_result[pos].productData,
-                                quantitiy : JSON_result[pos].quantity + 1,
+                                quantity : parseInt(JSON_result[pos].quantity) + 1,
                                 total : itemPrice * (JSON_result[pos].quantity + 1)
                             }
                                 // JSON_result.splice(i, 1, newItem);
