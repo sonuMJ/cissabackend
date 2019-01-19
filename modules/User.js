@@ -123,6 +123,22 @@ router.post("/verifyaccount", function(req, res){
     })
 })
 
+router.get("/getusernamebytoken", function(req, res){
+    var token = req.headers.token;
+    if(token != ""){
+        var valid_token = jwt.JWTVerify(token);
+        var TOKEN_DATA = jwt.JWTParse(token);
+        if(valid_token){
+            var username = TOKEN_DATA[0]._u;
+            res.json({name:username})
+        }else{
+            res.sendStatus(404);
+        }
+    }else{
+        res.sendStatus(404);
+    }
+})
+
 router.get("/sendmail", function(req, res){
     //mailService.EmailVerification("sonu.sowibo@gmail.com","Sonu",a);
     var d = new Date();

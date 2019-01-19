@@ -16,7 +16,7 @@ router.get("/getall/:category", function(req, res){
     var category = req.params.category;
     console.log(category);
     var URL = "SELECT * FROM products";
-    if(category === "all"){
+    if(category == 0){
         URL = "SELECT * FROM products";
         db.query(URL, function(err, result){
             if(err){
@@ -25,7 +25,7 @@ router.get("/getall/:category", function(req, res){
             res.status(200).json(result);
         })
     }else{
-        URL = "SELECT * FROM products WHERE category =?";
+        URL = "SELECT * FROM products WHERE category = ?";
         db.query(URL,[category], function(err, result){
             if(err){
                 console.log(err);
@@ -277,9 +277,9 @@ router.post("/orderproducts", function(req, res){
 
 
                                         //response
-                                        res.json({message: "Successfully Purchased!!"});
+                                        res.json({message: "Successfully Purchased!!",statuscode:200});
                                     }else{
-                                        res.json({message: "Failed to add orders!!"});
+                                        res.json({message: "Failed to add orders!!",statuscode:400});
                                     }
                                 })
                             }else{
