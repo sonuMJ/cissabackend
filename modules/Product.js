@@ -7,6 +7,8 @@ const redis = require('redis');
 const jwt = require("../security/Jwt");
 const mail = require('../Mail/MailService');
 const dbservice = require('../db/Dbservice');
+var formidable = require('formidable');
+var fs = require("fs");
 
 var client = redis.createClient();
 
@@ -15,9 +17,9 @@ var client = redis.createClient();
 router.get("/getall/:category", function(req, res){
     var category = req.params.category;
     console.log(category);
-    var URL = "SELECT * FROM products";
+    var URL = "";
     if(category == 0){
-        URL = "SELECT * FROM products";
+        URL = "SELECT * FROM products WHERE availability = 'true'";
         db.query(URL, function(err, result){
             if(err){
                 console.log(err);
@@ -25,7 +27,7 @@ router.get("/getall/:category", function(req, res){
             res.status(200).json(result);
         })
     }else{
-        URL = "SELECT * FROM products WHERE category = ?";
+        URL = "SELECT * FROM products WHERE category_id = ? AND availability = 'true'";
         db.query(URL,[category], function(err, result){
             if(err){
                 console.log(err);
@@ -35,11 +37,37 @@ router.get("/getall/:category", function(req, res){
     }
     
 })
+//get all products ====> admin
+router.get("/getall", function(req, res){
+    var CARTID = misc.RandomUserCartID();
+    db.query("SELECT products.id,products.name,product_category.name as category_name,products.price,products.quantity,products.img_url,products.availability,products.product_id,products.translated FROM products INNER JOIN product_category ON product_category.category_id = products.category_id", function(err, result){
+        if(err){
+            console.log(err);
+        }
+        console.log('====================================');
+        console.log(result);
+        console.log('====================================');
+        res.status(200).json(result);
+    })
+})
 //get product by id
 router.get("/get/:id", function(req, res){
     var id = req.params.id;
     console.log(id);
     db.query("SELECT * FROM products WHERE product_id =?",[id] ,function(err, result){
+        if(err){
+            res.json({message:"Somthing went wrong!"});
+
+        }
+        res.status(200).json(result);
+    })
+})
+
+//get product by id ====> admin
+router.get("/getproductbyid/:id", function(req, res){
+    var id = req.params.id;
+    console.log(id);
+    db.query("SELECT products.id,products.name,category.name as category_name,products.price,products.quantity,products.img_url,products.availability,products.product_id,products.translated FROM products INNER JOIN category ON category.category_id = products.category_id WHERE products.product_id =?",[id] ,function(err, result){
         if(err){
             res.json({message:"Somthing went wrong!"});
 
@@ -96,21 +124,26 @@ router.post("/send",
             check('price').not().isEmpty().isLength({min:1, max:8}).isNumeric().withMessage("Must be a numeric value"),
             check('quantity').not().isEmpty().isLength({min:1, max:8}),
             check('availability').not().isEmpty().isBoolean().withMessage("Must be Boolean"),
-            check('traslated').isLength({max : 20})
+            check('translated').isLength({max : 20})
         ]
         , function(req, res){
             var input = req.body;
-            var product_id = misc.RandomProductID();
             var data = {
                 name:input.name,
+                category_id: input.category_id,
                 price:input.price,
                 quantity:input.quantity,
                 img_url: input.img_url,
                 availability: input.availability,
-                product_id: product_id,
-                translated : input.translated,
-                category:input.category
+                product_id: input.product_id,
+                translated : input.translated
             }
+            if(data.product_id == ""){
+                data.product_id = misc.RandomProductID();
+            }
+            console.log('====================================');
+            console.log(data);
+            console.log('====================================');
             const error = validationResult(req);
                 if(!error.isEmpty()){
                     res.status(422).json({errors : error.array()})
@@ -126,17 +159,44 @@ router.post("/send",
             
 })
 
+//upload file
+router.post("/upload",function(req,res){
+    var form = new formidable.IncomingForm();
+    form.parse(req, function (err, fields, files) {
+        var product_id = misc.RandomProductID();
+        var oldpath = files.file.path;
+        var fileext = files.file.type.split("/");
+        var newpath = 'C:/Users/user/Uploaded/IMG_' +product_id +"."+fileext[1];
+        console.log('====================================');
+        console.log(files);
+        console.log(fields);
+        console.log(oldpath);
+        console.log(newpath);
+        console.log('====================================');
+        fs.rename(oldpath, newpath, function (err) {
+            if (err) throw err;
+            res.status(200).json(
+                {
+                    message : "Product updated successfully!",
+                    product_id: product_id,
+                    path: newpath
+                }
+                );
+          });
+    });
+})
+
 //update product
 router.put("/:id", function(req, res){
     var id = req.params.id;
     var input = req.body;
     var data = {
         name:input.name,
+        category_id: input.category_id,
         price:input.price,
         quantity:input.quantity,
         img_url: input.img_url,
-        translated : input.translated,
-        category:input.category
+        translated : input.translated
     }
     db.query("UPDATE products set ? WHERE product_id = ?",[data,id], function(err, result){
         if(err){
@@ -148,7 +208,7 @@ router.put("/:id", function(req, res){
 })
 
 //update availability
-router.put("/availabiltiy/:id", function(req, res){
+router.put("/availability/:id", function(req, res){
     var id = req.params.id;
     var status = req.body.status;
     var av = "";
@@ -191,6 +251,7 @@ function nextDate(dayIndex) {
     return today;
 }
 router.post("/orderproducts", function(req, res){
+    const SCHEDULED_DAY = 1; //1 => monday
     var KEY = req.headers._cid;
     var TOKEN = req.headers.token;
     var SESSIONID = req.headers.sessionid;
@@ -208,6 +269,10 @@ router.post("/orderproducts", function(req, res){
                 var orderId = misc.RandomOrderID();
                 var bulkSave = false;
                 var d = new Date();
+                // scheduled for 
+                var sDate = new Date();
+                var scheduledDate = sDate.setDate(d.getDate() + + (SCHEDULED_DAY - 1 - d.getDay() + 7) % 7 + 1);
+
                 client.get(KEY, function(err, result){
                     if(err){
                         res.json({message: "Something went wrong!!"});
@@ -229,6 +294,8 @@ router.post("/orderproducts", function(req, res){
                         })
                         db.query("INSERT INTO order_details(orderid,productid,quantity,date) VALUES ?", [orderProducts], function(err,result){
                             if(err){
+                                console.log(err);
+                                
                                 res.sendStatus(304);
                             }
                             bulkSave = true;
@@ -239,6 +306,7 @@ router.post("/orderproducts", function(req, res){
                                     orderid:orderId,
                                     userid: USER_ID,
                                     date:d.getTime(),
+                                    scheduled_date:scheduledDate,
                                     status:"not delivered"
                                 }
                                 db.query("INSERT INTO orders SET ?", [orderData], function(err, result){
@@ -265,7 +333,7 @@ router.post("/orderproducts", function(req, res){
                                                 var time = d.getDate() +" "+month + " "+d.getFullYear();
                                                 setTimeout(() => {
                                                     
-                                                    mail.Orderpurchase(email,username,orderId, time);
+                                                   // mail.Orderpurchase(email,username,orderId, time);
                                                 }, 1000);
                                             
                                             }
@@ -274,7 +342,8 @@ router.post("/orderproducts", function(req, res){
                                         
                                         
                                         
-
+                                        
+                                        
 
                                         //response
                                         res.json({message: "Successfully Purchased!!",statuscode:200});
@@ -303,6 +372,7 @@ router.post("/orderproducts", function(req, res){
 })
 
 router.post("/reorder", function(req, res){
+    const SCHEDULED_DAY = 1; //1 => monday
     var TOKEN = req.headers.token;
     var SESSIONID = req.headers.sessionid;
     if(TOKEN != undefined && SESSIONID != undefined){
@@ -313,6 +383,10 @@ router.post("/reorder", function(req, res){
             var orderId = req.body.orderid;
             var neworderId = misc.RandomOrderID();
             var d = new Date();
+            // scheduled for 
+            var sDate = new Date();
+            var scheduledDate = sDate.setDate(d.getDate() + + (SCHEDULED_DAY - 1 - d.getDay() + 7) % 7 + 1);
+            var dd = new Date(scheduledDate);
             var orderProducts = [];
             var bulkSave = false;
             if(orderId != ""){
@@ -341,6 +415,7 @@ router.post("/reorder", function(req, res){
                                     orderid:neworderId,
                                     userid: USER_ID,
                                     date:d.getTime(),
+                                    scheduled_date:scheduledDate,
                                     status:"not delivered"
                                 }
                                 db.query("INSERT INTO orders SET ?", [orderData], function(err, result){

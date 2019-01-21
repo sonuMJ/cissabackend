@@ -94,7 +94,7 @@ router.post("/getall",function(req,res){
     
     console.log('====================================');
 
-    db.query("SELECT order_details.id,orders.orderid,orders.userid,orders.status,order_details.productid,products.name, order_details.quantity,products.price, order_details.date FROM orders INNER JOIN order_details ON orders.orderid=order_details.orderid INNER JOIN products ON order_details.productid = products.product_id WHERE order_details.date BETWEEN ? AND ? ORDER BY IF(orders.status = 'true' , TRUE,FALSE),CAST(orders.date as SIGNED) DESC",[startDate,endDate], function(err, result){
+    db.query("SELECT order_details.id,orders.orderid,orders.userid,orders.status,order_details.productid,products.name, order_details.quantity,products.price, order_details.date FROM orders INNER JOIN order_details ON orders.orderid=order_details.orderid INNER JOIN products ON order_details.productid = products.product_id WHERE order_details.date BETWEEN ? AND ? ORDER BY IF((orders.status = 'Delivered' || orders.status = 'Cancelled'|| orders.status = 'Picked up') , TRUE,FALSE),CAST(orders.date as SIGNED) DESC",[startDate,endDate], function(err, result){
         if(err){
             console.log(err);
         }
@@ -112,7 +112,7 @@ router.post("/getByProduct",function(req,res){
     
     console.log('====================================');
 
-    db.query("SELECT orders.userid,orders.status,order_details.productid,products.name, order_details.quantity,products.price, order_details.date,SUM(CASE WHEN orders.status = 'false' THEN order_details.quantity ELSE 0 END) AS quan FROM orders INNER JOIN order_details ON orders.orderid=order_details.orderid INNER JOIN products ON order_details.productid = products.product_id WHERE order_details.date BETWEEN ? AND ? GROUP BY order_details.productid ORDER BY quan DESC",[startDate,endDate], function(err, result){
+    db.query("SELECT orders.userid,orders.status,order_details.productid,products.name, order_details.quantity,products.price, order_details.date,SUM(CASE WHEN (orders.status = 'Pending Delivery' || orders.status = 'Upcoming pickup') THEN order_details.quantity ELSE 0 END) AS quan FROM orders INNER JOIN order_details ON orders.orderid=order_details.orderid INNER JOIN products ON order_details.productid = products.product_id WHERE order_details.date BETWEEN ? AND ? GROUP BY order_details.productid HAVING quan != 0 ORDER BY quan DESC ",[startDate,endDate], function(err, result){
         if(err){
             console.log(err);
         }
@@ -124,13 +124,7 @@ router.put("/status/:id", function(req, res){
     var id = req.params.id;
     var status = req.body.status;
     console.log(status+id);
-    var av = "";
-    if(status==1){
-        av = "true";
-    }else{
-        av = "false";
-    }
-    db.query("UPDATE orders set status = ? WHERE orderid = ?", [av, id], function(err, result){
+    db.query("UPDATE orders set status = ? WHERE orderid = ?", [status, id], function(err, result){
         if(err){
             res.json({message:"Somthing went wrong!"});
         }

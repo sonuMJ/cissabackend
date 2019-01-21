@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head><title>Order Confirmation</title>
+    <meta charset="utf-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <style>
+    </style>
+    <body style="background-color: #f6f6f6;padding: 50px">
+        <div style="width: 550px;margin: auto; font-size: 18px;padding: 21px; font-family: sans-serif;letter-spacing: 0.5px;background-color: #fff;border-radius: 20px 20px 0px 0px;">
+            <div style="color: black">
+                <div style="text-align:center">
+                        <img src="cid:logo@cissa.ee" width="85"/>
+                    </div>
+                    <div  style="float: right;"><p style="font-size: 21px;">{{status}} Confirmation <br>{{data.orderid}}</p></div>
+                    <div style="margin-top: 115px;"><b style="font-size: 22px;">Hello {{data.username}},</b> <br><p style="padding-bottom: 20px;">Thank you for shopping with us. Product has been picked up from one of our stores.<br><br>
+                        For further assistance please contact:</p></div>
+            </div>
+            <div style="color: black">
+                <p style="border-bottom: 1px solid black;"><b>{{status}} Details</b></p>
+                <table style="border: none;">
+                    <tr>
+                        <th style="width: 540px;text-align:left;">Picked Up:</th>
+                        <th style="width: 540px;text-align: right;">Store Address</th>
+                    </tr>
+                    <tr>
+                        <td>Wednesday, Time</td>
+                        <td style="text-align: right;">USRA-55, Udarasiromani Rd, Vellayambalam, Thiruvananthapuram, Kerala 695010</td>
+                    </tr>
+                </table>
+            </div>
+            <div style="color: black">
+                    <p style="border-bottom: 1px solid black;"><b>Order Details</b></p>
+               <p><b>Order #{{data.orderid}} </b><br>Order placed on: {{data.date}}</p> 
+                    
+            </div>
+            <div style="border: none; border-bottom: 1px solid black; color: black;">
+            <table>
+                <thead style="background-color: #ccc">
+                    <td colspan="2">Item</td>
+                    <td>Price</td>
+                    <td>Quantity</td>
+                    <td>Total</td>
+                </thead>
+                    <tr>
+                        <td style="width: 160px;"><img src="images/carrot_PNG4978.png" height="60"></td>
+                        <td  style="width: 160px;">CARROT</td>
+                       <td style="width: 160px;">50</td>
+                       <td style="width: 160px;">2</td>
+                       <td style="width: 160px;">100</td>
+                    </tr> 
+                
+                </table>
+            </div>
+            <div style="color: black">
+            <p>We hope to see you again soon.</p>
+            <div style="text-align:center;font-size: 12px;">
+                <p>Issued on behalf of</p>
+                <p style="font-size: 16px; font-weight: 600;">Cissa Organics</p>
+                <p>USRA-55, Udarasiromani Rd, Vellayambalam, Thiruvananthapuram, Kerala 695010</p>
+            </div>
+            </div>
+        </div>
+    </body>
+</html>

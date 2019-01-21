@@ -3,6 +3,7 @@ const Hogan = require('hogan.js');
 const fs = require('fs');
 const ejs = require('ejs');
 const handlebars = require('handlebars');
+require('dotenv/config');
 
 //https://webapplog.com/handlebars/
 
@@ -23,8 +24,8 @@ let transporter = nodemailer.createTransport({
     secure: false, // true for 465, false for other ports
     tls: {rejectUnauthorized: false},
     auth: {
-        user: 'sonu.sowibo@gmail.com', // generated ethereal user
-        pass: 'sonu@sowibo' // generated ethereal password
+        user: process.env.EMAIL_ID, // generated ethereal user
+        pass: process.env.EMAIL_PASSWORD // generated ethereal password
     }
 });
 module.exports = {
@@ -80,8 +81,8 @@ module.exports = {
             secure: false, // true for 465, false for other ports
             tls: {rejectUnauthorized: false},
             auth: {
-                user: 'sonu.sowibo@gmail.com', // generated ethereal user
-                pass: 'sonu@sowibo' // generated ethereal password
+                user: process.env.EMAIL_ID, // generated ethereal user
+                pass: process.env.EMAIL_PASSWORD // generated ethereal password
             }
         });
 

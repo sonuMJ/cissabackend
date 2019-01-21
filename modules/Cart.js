@@ -24,6 +24,8 @@ router.delete("/_cdel", function(req, res){
 router.post("/addCart", function(req, res){
     var exist = false;
     var JSON_result;
+    var checkQuantity = false;
+    const MAX_QTY = 5;
     var position;
     var product_details = "";
     /*
@@ -54,56 +56,78 @@ router.post("/addCart", function(req, res){
             total: itemPrice
         }
         client.get(KEY, function(err, result){
-            if(err)
+            if(err){
                 console.log(err);
-            
-            
-            if(result == null){
-                var _t = [];
-                _t.push(cartData);
-                console.log("empty");
-                client.set(KEY, JSON.stringify(_t), redis.print);
             }else{
-                var _t = [];
-                var newItem;
-                if(result){
-                    JSON_result = JSON.parse(result);
-                    Object.keys(JSON_result).map((item,pos) => {
-                        
-                        if(JSON_result[pos].productId == product_id){
-                            exist = true;
-                            console.log("we found that");
-                            position = JSON_result.indexOf(JSON_result[pos]);
-                            
-                            newItem = {
-                                productId : JSON_result[pos].productId,
-                                productData : JSON_result[pos].productData,
-                                quantity : parseInt(JSON_result[pos].quantity) + 1,
-                                total : itemPrice * (JSON_result[pos].quantity + 1)
-                            }
-                                // JSON_result.splice(i, 1, newItem);
-                                // _t.push(JSON_result[i])
-                            
-                        }
-                        else{
-                            // console.log("not exist!");
-                             _t.push(JSON_result[pos]);
-                        }
-                    })
-                }
-                if(exist){
-                    //true
-                    JSON_result.splice(position, 1, newItem);
-                    console.log(JSON_result);
-                    _t.push(JSON_result[position])
-                    
+                if(result == null){
+                    var _t = [];
+                    _t.push(cartData);
+                    console.log("empty");
+                    client.set(KEY, JSON.stringify(_t), redis.print);
                 }else{
-                    //false
-                    console.log(JSON_result);
-                    _t.push(cartData)
+                    var _t = [];
+                    var newItem;
+                    if(result){
+                        JSON_result = JSON.parse(result);
+                        Object.keys(JSON_result).map((item,pos) => {
+                            
+                            
+                            if(JSON_result[pos].productId == product_id){
+                                var q = JSON_result[pos].quantity;
+                                //maximum quantity
+                                if(q >= MAX_QTY){
+                                    checkQuantity = true
+                                    
+                                }
+                                exist = true;
+                                
+                                console.log("we found that");
+                                position = JSON_result.indexOf(JSON_result[pos]);
+                                if(checkQuantity){
+                                    newItem = {
+                                        productId : JSON_result[pos].productId,
+                                        productData : JSON_result[pos].productData,
+                                        quantity : MAX_QTY,
+                                        total : itemPrice * (JSON_result[pos].quantity)
+                                    }
+                                }else{
+                                    newItem = {
+                                        productId : JSON_result[pos].productId,
+                                        productData : JSON_result[pos].productData,
+                                        quantity : parseInt(JSON_result[pos].quantity) + 1,
+                                        total : itemPrice * (JSON_result[pos].quantity + 1)
+                                    }
+                                }
+                                
+                                    // JSON_result.splice(i, 1, newItem);
+                                    // _t.push(JSON_result[i])
+                                
+                            }
+                            else{
+                                // console.log("not exist!");
+                                 _t.push(JSON_result[pos]);
+                            }
+                        })
+                    }
+                    if(exist){
+                        //true
+                        console.log(checkQuantity);
+                        JSON_result.splice(position, 1, newItem);
+                        console.log(JSON_result);
+                        _t.push(JSON_result[position])
+                        
+                    }else{
+                        //false
+                        if(checkQuantity){
+
+                        }else{
+                            _t.push(cartData)
+                        }
+                        
+                    }
+                    client.set(KEY, JSON.stringify(_t), redis.print);
                 }
-                client.set(KEY, JSON.stringify(_t), redis.print);
-            }
+            } 
         })
     //     //
     }, 100);
