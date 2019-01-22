@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require("../db/dbconnection");
 const misc = require("../Misc/Misc");
-const { check, validationResult } = require('express-validator/check')
+const { check, validationResult } = require('express-validator/check');
 const router = express.Router();
 const redis = require('redis');
 const jwt = require("../security/Jwt");

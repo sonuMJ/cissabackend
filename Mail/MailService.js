@@ -8,12 +8,14 @@ require('dotenv/config');
 //https://webapplog.com/handlebars/
 
 var template = fs.readFileSync("../cissabackend/Mail/emailverification.html", "utf-8");
-var emailVerificationTemplate = fs.readFileSync("../cissabackend/Mail/emailverification.html", "utf-8");
+var emailVerificationTemplate = fs.readFileSync("../cissabackend/Mail/email_verify.html", "utf-8");
+var resetpasswordTemplate = fs.readFileSync("../cissabackend/Mail/resetpassword.html", "utf-8");  // reset password
 var orderpurchaseTemplate = fs.readFileSync("../cissabackend/Mail/purchasedetails.html", "utf-8");
 
 var orderPurchasecompileTemplate = handlebars.compile(orderpurchaseTemplate);
 var compileTemplate = handlebars.compile(template);
 var emailVerifycompileTemplate = handlebars.compile(emailVerificationTemplate);
+var resetpasswordcompileTemplate = handlebars.compile(resetpasswordTemplate); // reset password temp
 
 
 // create reusable transporter object using the default SMTP transport
@@ -61,6 +63,27 @@ module.exports = {
            // html: "<b>Hello world?</b>" // html body
             //html:compileTemplate({company:"Cissa organics",tags:tags})
             html:emailVerifycompileTemplate({url: URL,username: userName})
+        };
+        // send mail with defined transport object
+        transporter.sendMail(mailOptions, function(error, response){
+            if(error){
+                console.log(error);
+            }else{
+                console.log("Message sent: " + JSON.stringify(response));
+            }
+            //smtpTransport.close(); // shut down the connection pool, no more messages
+        });
+    },
+    resetPassword : function(toAddress, v_id){
+        var URL = "http://localhost:3000/resetpassword/"+v_id+"/"+toAddress;
+        let mailOptions = {
+            from: '"Cissa Organics👻" <sonu.sowibo.com>', // sender address
+            to: toAddress, // list of receivers
+            subject: "[Cissa organics Email Verification]", // Subject line
+            text: "cissa organics", // plain text body
+           // html: "<b>Hello world?</b>" // html body
+            //html:compileTemplate({company:"Cissa organics",tags:tags})
+            html:resetpasswordcompileTemplate({url: URL})
         };
         // send mail with defined transport object
         transporter.sendMail(mailOptions, function(error, response){

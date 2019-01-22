@@ -8,11 +8,12 @@ const csurf = require('csurf');
 var session = require("express-session");
 var mailService = require('../Mail/MailService');
 var dbservice = require('../db/Dbservice');
+const { check, validationResult } = require('express-validator/check')
 
 
 const saltRounds = 10;
 const SELECT_ID_BY_EMAIL_FROM_USERDB = "SELECT id from user WHERE email = ?";
-const SELECT_ALL_BY_EMAIL_FROM_USERDB = "SELECT * from user WHERE email = ? AND verified = 'true'";
+const SELECT_ALL_BY_EMAIL_FROM_USERDB = "SELECT * from user WHERE email = ? ";
 const USER_ROLE = 'user';
 
 router.use(session({secret:"secret", resave:false, saveUninitialized :false}));
@@ -30,7 +31,11 @@ router.get("/",csrfProtection, function(req, res){
 })
 
 //save user
-router.post("/register", function(req, res){
+router.post("/register",[
+        check("username").isLength({min:2, max:30}).not().isEmpty(),
+        check("email").isLength({min:5, max:40}).not().isEmpty().isEmail(),
+        check("password").isLength({min:8, max:30}).not().isEmpty(),
+    ], function(req, res){
     var input = req.body;
     var usr_id = misc.RandomIdGen();
     var Verif_code = misc.RandomUserVerificationID();
@@ -76,13 +81,13 @@ router.post("/register", function(req, res){
 
 //login
 router.post("/login",csrfProtection, function(req, res){
-    console.log( req.headers['origin'])
+    //console.log( req.headers['origin'])
     var email = req.body.email;
     var password = req.body.password;
     var csurf_token = req.csrfToken();
     db.query(SELECT_ALL_BY_EMAIL_FROM_USERDB, [email], function(err, results){
         if(results == ""){
-            res.status(404).json({message : "Invalid User!!"});
+            res.status(404).json({message : "Invalid Account!!"});
         }else{
             //compare password
             bcrypt.compare(password, results[0].password, function(err, vaild){
@@ -97,7 +102,7 @@ router.post("/login",csrfProtection, function(req, res){
                     // console.log(b);
                     
                 }else{
-                    res.status(404).json({message : "Invalid User!!"});
+                    res.status(404).json({message : "Invalid Account!!"});
                 }
             })
         }
@@ -109,13 +114,18 @@ router.post("/verifyaccount", function(req, res){
     db.query("SELECT * FROM user WHERE verification_code = ?", [verify_code], function(err, result){
         if(!err){
             if(result != ""){
-                db.query("UPDATE user SET verified = ? WHERE verification_code =?",["true", verify_code], function(err, array){
-                    if(!err){
-                        res.sendStatus(200);
-                    }else{
-                        res.sendStatus(404);
-                    }
-                })
+                console.log(result[0].verified);
+                if(result[0].verified == 'true'){
+                    res.sendStatus(409); //already verified
+                }else{
+                    db.query("UPDATE user SET verified = ? WHERE verification_code =?",["true", verify_code], function(err, array){
+                        if(!err){
+                            res.sendStatus(200);
+                        }else{
+                            res.sendStatus(404);
+                        }
+                    })
+                }
             }
         }else{
             res.sendStatus(404);
@@ -143,6 +153,48 @@ router.get("/sendmail", function(req, res){
     //mailService.EmailVerification("sonu.sowibo@gmail.com","Sonu",a);
     var d = new Date();
     res.json(d.getDay());
+})
+
+router.post("/resetpasswordmail", function(req,res){
+    var email = req.body.email;
+    if(email != ""){
+        db.query("SELECT * FROM user WHERE email = ?", [email], function(err, result){
+            if(result != ""){
+
+                mailService.resetPassword(email,result[0].verification_code)
+                res.status(200).json({message:"Password reset link sended to your email account"});
+            }else{
+                res.sendStatus(404);
+            }
+        })
+    }else{
+        res.sendStatus(404);
+    }
+})
+
+router.post("/resetpassword", function(req, res){
+    var v_code = req.body.verify_code;
+    var email = req.body.email;
+    var newPassword = req.body.password;
+    if(v_code !== ""&&email !== ""&&newPassword !== ""){
+        bcrypt.genSalt(10, function(err, salt) {
+            bcrypt.hash(newPassword, salt, function(err,results){
+                if(err){
+                    res.status(404);
+                }else{
+                    db.query("UPDATE user SET password = ? WHERE email= ? AND verification_code = ?", [results, email, v_code], function(err, result){
+                        if(err){
+                            res.status(404);
+                        }else{
+                            res.status(200).json({message:"Password updated successfully!!"});
+                        }
+                    })
+                }
+            })
+        })
+    }else{
+        res.status(404);
+    }
 })
 
 
