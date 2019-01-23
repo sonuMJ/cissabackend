@@ -56,6 +56,22 @@ router.post("/productsbyorderid", function(req, res){
     }
 })
 
+router.post("/productdetailformail", function(req, res){
+    var orderId = req.body.orderid;
+    if(orderId != undefined){
+        var data = [];
+        db.query("SELECT products.name, order_details.quantity,products.price FROM orders INNER JOIN order_details ON orders.orderid=order_details.orderid INNER JOIN products ON order_details.productid = products.product_id WHERE orders.orderid = ?", [orderId], function(err, array){
+            var usersRows = JSON.parse(JSON.stringify(array));
+            if(!err){
+                res.json(array)
+            }
+            // setTimeout(() => {
+            //     res.json(data);
+            // }, 100);
+        })
+    }
+})
+
 router.post("/cancelorder", function(req, res){
     var orderid = req.body.orderid;
     console.log(orderid);
@@ -65,7 +81,6 @@ router.post("/cancelorder", function(req, res){
     if(TOKEN != undefined && SESSIONID != undefined){
         var valid_token = jwt.JWTVerify(TOKEN);
         var TOKEN_DATA = jwt.JWTParse(TOKEN);
-        console.log(SESSIONID);
         var cancelStatus = "cancelled";
         if(valid_token){
             //update status

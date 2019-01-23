@@ -16,7 +16,6 @@ var client = redis.createClient();
 //get all products 
 router.get("/getall/:category", function(req, res){
     var category = req.params.category;
-    console.log(category);
     var URL = "";
     if(category == 0){
         URL = "SELECT * FROM products WHERE availability = 'true'";
@@ -53,7 +52,6 @@ router.get("/getall", function(req, res){
 //get product by id
 router.get("/get/:id", function(req, res){
     var id = req.params.id;
-    console.log(id);
     db.query("SELECT * FROM products WHERE product_id =?",[id] ,function(err, result){
         if(err){
             res.json({message:"Somthing went wrong!"});
@@ -66,7 +64,6 @@ router.get("/get/:id", function(req, res){
 //get product by id ====> admin
 router.get("/getproductbyid/:id", function(req, res){
     var id = req.params.id;
-    console.log(id);
     db.query("SELECT products.id,products.name,category.name as category_name,products.price,products.quantity,products.img_url,products.availability,products.product_id,products.translated FROM products INNER JOIN category ON category.category_id = products.category_id WHERE products.product_id =?",[id] ,function(err, result){
         if(err){
             res.json({message:"Somthing went wrong!"});
@@ -260,6 +257,8 @@ router.post("/orderproducts", function(req, res){
         var TOKEN_DATA = jwt.JWTParse(TOKEN);
         
         if(valid_token){
+            console.log("valid token");
+            
             var JWT_SESSION = TOKEN_DATA[0].csrf;
             if(JWT_SESSION === SESSIONID){
                 var USER_ID = TOKEN_DATA[0]._i;
@@ -331,9 +330,24 @@ router.post("/orderproducts", function(req, res){
                                                 var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
                                                 var month = months[d.getMonth()];
                                                 var time = d.getDate() +" "+month + " "+d.getFullYear();
+                                                var s_date = new Date(scheduledDate); 
+                                                var s_month = months[s_date.getMonth()];
+                                                var full_s_date = s_date.getDate() + " " + s_month + " " +s_date.getFullYear();
+                                                
                                                 setTimeout(() => {
-                                                    
-                                                   // mail.Orderpurchase(email,username,orderId, time);
+                                                    var emailData = [];
+                                                    db.query("SELECT products.name, order_details.quantity,products.price,order_details.quantity * products.price as 'total' FROM orders INNER JOIN order_details ON orders.orderid=order_details.orderid INNER JOIN products ON order_details.productid = products.product_id WHERE orders.orderid = ?", [orderId], function(err, array){
+                                                        
+                                                        if(!err){
+                                                            emailData.push(array);
+                                                        }
+                                                    })
+                                                    setTimeout(() => {
+                                                        var emailParseData = JSON.parse(JSON.stringify(emailData[0]));
+
+                                                        mail.Orderpurchase(email,username,orderId, time,full_s_date,emailParseData);
+                                                    }, 100);
+                                                   
                                                 }, 1000);
                                             
                                             }

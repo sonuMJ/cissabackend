@@ -150,9 +150,33 @@ router.get("/getusernamebytoken", function(req, res){
 })
 
 router.get("/sendmail", function(req, res){
-    //mailService.EmailVerification("sonu.sowibo@gmail.com","Sonu",a);
+    var data = [
+        {
+            "name": "Onion",
+            "quantity": "4",
+            "price": "36"
+        },
+        {
+            "name": "Beans",
+            "quantity": "12",
+            "price": "24"
+        },
+        {
+            "name": "Carrot",
+            "quantity": "2",
+            "price": "50"
+        }
+    ]
+    //var dd = dbservice.OrderdetailsForemailbyOrderid("1800899637193");
+    
+    //mailService.Orderpurchase("sonu.sowibo@gmail.com","sonu","123456789","12 thu 2018",data);
     var d = new Date();
-    res.json(d.getDay());
+    var s_date = new Date(1548659812993); 
+    var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    var month = months[s_date.getMonth()];
+    var full_s_date = s_date.getDate() + " " + month + " " +s_date.getFullYear();
+        res.json(full_s_date);
+    
 })
 
 router.post("/resetpasswordmail", function(req,res){

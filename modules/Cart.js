@@ -62,7 +62,6 @@ router.post("/addCart", function(req, res){
                 if(result == null){
                     var _t = [];
                     _t.push(cartData);
-                    console.log("empty");
                     client.set(KEY, JSON.stringify(_t), redis.print);
                 }else{
                     var _t = [];
@@ -81,7 +80,6 @@ router.post("/addCart", function(req, res){
                                 }
                                 exist = true;
                                 
-                                console.log("we found that");
                                 position = JSON_result.indexOf(JSON_result[pos]);
                                 if(checkQuantity){
                                     newItem = {
@@ -111,9 +109,7 @@ router.post("/addCart", function(req, res){
                     }
                     if(exist){
                         //true
-                        console.log(checkQuantity);
                         JSON_result.splice(position, 1, newItem);
-                        console.log(JSON_result);
                         _t.push(JSON_result[position])
                         
                     }else{
@@ -161,7 +157,6 @@ router.put("/cartQty", function(req, res){
             if(result != null){
                 Object.keys(JSON_RESULT).map((item, pos) => {
                     if(JSON_RESULT[pos].productId == product_id){
-                        console.log("its exists");
                         exist = true;
                         unitPrice = JSON_RESULT[pos].productData[0].price;
                         position = JSON_RESULT.indexOf(JSON_RESULT[pos]);
@@ -193,7 +188,6 @@ router.put("/cartQty", function(req, res){
                 Object.keys(JSON_RESULT).map((item, pos) => {
                     if(JSON_RESULT[pos].productId == product_id){
                         unitPrice = JSON_RESULT[pos].productData[0].price;
-                        console.log("its exists");
                         exist = true;
                         position = JSON_RESULT.indexOf(JSON_RESULT[pos]);
                         newItem = {

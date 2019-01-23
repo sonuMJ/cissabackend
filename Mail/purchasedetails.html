@@ -19,11 +19,7 @@
                         <th style="width: 540px;text-align: right;">Store Address</th>
                     </tr>
                     <tr>
-                        <td>Arriving: 
-                            Wednesday, September 26 - <br>
-                            Wednesday, October 3<br>
-                            Your shipping speed: 
-                            FREE Delivery on eligible orders</td>
+                        <td>{{s_date}}</td>
                         
                         <td style="text-align: right;">
                             Vazhuthacud<br>
@@ -39,27 +35,34 @@
 Placed on {{Time}}</p> 
                     
             </div>
+            <ul>
+                {{#each data.tags}}
+                  <li>{{this}}</li>
+                {{/each}}
+              </ul>
             <div style="border: none; border-bottom: 1px solid black;">
-            <table>
+            <table style="width:100%">
                 <thead style="background-color: #ccc">
-                    <td colspan="2">Item</td>
-                    <td>Price</td>
-                    <td>Quantity</td>
-                    <td>Total</td>
+                    <td style="width:50%">Item</td>
+                    <td style="width:15%">Price</td>
+                    <td style="width:15%">Quantity</td>
+                    <td style="width:20%">Total</td>
                 </thead>
-                    <tr>
-                        <td style="width: 160px;"><img src="images/carrot_PNG4978.png" height="60"></td>
-                        <td  style="width: 160px;">CARROT</td>
-                       <td style="width: 160px;">50</td>
-                       <td style="width: 160px;">2</td>
-                       <td style="width: 160px;">100</td>
-                    </tr> 
-                
+                <tbody>
+                    {{#each productData}}
+                        <tr>
+                            <td>{{name}}</td>
+                            <td>{{price}}</td>
+                            <td>{{quantity}}</td>
+                            <td>{{total}}</td>
+                        </tr>
+                    {{/each}}
+                </tbody>
                 </table>
             </div>
             <div>
             <p>We hope to see you again soon.<br>
-<b>Cisa Oraganic.com</b></p>
+<b>Cissa Oraganic.com</b></p>
             </div>
         </div>
     </body>

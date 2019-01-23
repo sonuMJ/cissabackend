@@ -7,6 +7,21 @@ require('dotenv/config');
 
 //https://webapplog.com/handlebars/
 
+var data = {tags: ['express', 'node', 'javascript']};
+var data1 = 
+[
+    {
+        "name": "Onion",
+        "quantity": "4",
+        "price": "36"
+    },
+    {
+        "name": "Beans",
+        "quantity": "12",
+        "price": "24"
+    }
+];
+
 var template = fs.readFileSync("../cissabackend/Mail/emailverification.html", "utf-8");
 var emailVerificationTemplate = fs.readFileSync("../cissabackend/Mail/email_verify.html", "utf-8");
 var resetpasswordTemplate = fs.readFileSync("../cissabackend/Mail/resetpassword.html", "utf-8");  // reset password
@@ -95,7 +110,7 @@ module.exports = {
             //smtpTransport.close(); // shut down the connection pool, no more messages
         });
     },
-    Orderpurchase : function(toAddress,userName,orderId, time){
+    Orderpurchase : function(toAddress,userName,orderId, time, s_date,data){
         // create reusable transporter object using the default SMTP transport
         let transporter = nodemailer.createTransport({
             service: 'gmail',
@@ -116,7 +131,7 @@ module.exports = {
             text: "cissa organics", // plain text body
            // html: "<b>Hello world?</b>" // html body
             //html:compileTemplate({company:"Cissa organics",tags:tags})
-            html:orderPurchasecompileTemplate({orderid:orderId,username:userName,orderid:orderId,Time:time})
+            html:orderPurchasecompileTemplate({orderid:orderId,username:userName,orderid:orderId,Time:time,data:data,s_date:s_date,productData:data})
         };
         // send mail with defined transport object
         transporter.sendMail(mailOptions, function(error, response){
