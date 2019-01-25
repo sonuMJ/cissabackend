@@ -147,5 +147,39 @@ router.put("/status/:id", function(req, res){
     })
 })
 
+router.post("/removeOrderProduct", function(req, res){
+    //delete from order_details
+    var orderid = req.body.orderid;
+    var productid = req.body.productid;
+    if(orderid !== ""&& productid !== ""){
+        db.query("DELETE FROM order_details WHERE orderid = ? AND productid = ?", [orderid, productid], function(err, result){
+            if(err){
+                res.sendStatus(404)
+            }else{
+                res.json({message:"Product Deleted!"});
+            }
+        })
+    }else{
+        res.sendStatus(404);
+    }
+})
+router.post("/rmvunwantedorder", function(req, res){
+    var orderid = req.body.orderid;
+    console.log(orderid);
+    if(orderid !== ""){
+        db.query("DELETE FROM orders WHERE orderid = ? ",[orderid] ,function(err, result){
+            if(err){
+                console.log(err);
+                
+                res.sendStatus(404);
+            }else{
+                res.json("Order deleted!")
+            }
+        })
+    }else{
+        res.sendStatus(404);
+    }
+})
+
 
 module.exports = router;

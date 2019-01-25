@@ -22,6 +22,7 @@ router.delete("/_cdel", function(req, res){
 })
 
 router.post("/addCart", function(req, res){
+    var cartNumber;
     var exist = false;
     var JSON_result;
     var checkQuantity = false;
@@ -53,7 +54,8 @@ router.post("/addCart", function(req, res){
             productId: product_id,
             productData: product_details,
             quantity:1,
-            total: itemPrice
+            total: itemPrice,
+            id:1
         }
         client.get(KEY, function(err, result){
             if(err){
@@ -68,10 +70,15 @@ router.post("/addCart", function(req, res){
                     var newItem;
                     if(result){
                         JSON_result = JSON.parse(result);
+                        console.log(JSON_result);
+                        
                         Object.keys(JSON_result).map((item,pos) => {
+                            cartNumber = JSON_result.length;
+                            
                             
                             
                             if(JSON_result[pos].productId == product_id){
+                                console.log(JSON_result[pos].id);
                                 var q = JSON_result[pos].quantity;
                                 //maximum quantity
                                 if(q >= MAX_QTY){
@@ -86,14 +93,16 @@ router.post("/addCart", function(req, res){
                                         productId : JSON_result[pos].productId,
                                         productData : JSON_result[pos].productData,
                                         quantity : MAX_QTY,
-                                        total : itemPrice * (JSON_result[pos].quantity)
+                                        total : itemPrice * (JSON_result[pos].quantity),
+                                        id:JSON_result[pos].id
                                     }
                                 }else{
                                     newItem = {
                                         productId : JSON_result[pos].productId,
                                         productData : JSON_result[pos].productData,
                                         quantity : parseInt(JSON_result[pos].quantity) + 1,
-                                        total : itemPrice * (JSON_result[pos].quantity + 1)
+                                        total : itemPrice * (JSON_result[pos].quantity + 1),
+                                        id:JSON_result[pos].id
                                     }
                                 }
                                 
@@ -117,7 +126,14 @@ router.post("/addCart", function(req, res){
                         if(checkQuantity){
 
                         }else{
-                            _t.push(cartData)
+                            cartDataAdd = {
+                                productId: product_id,
+                                productData: product_details,
+                                quantity:1,
+                                total: itemPrice,
+                                id:cartNumber + 1 
+                            }
+                            _t.push(cartDataAdd)
                         }
                         
                     }
@@ -131,11 +147,20 @@ router.post("/addCart", function(req, res){
 })
 router.post("/showCart", function(req, res){
     var KEY = req.headers._cid;
+    
     client.get(KEY, function(err, result){
         if(err){
             console.log(err);
         }
-        res.json({result : JSON.parse(result)})
+        //console.log(JSON.parse(result));
+        var r = JSON.parse(result);
+        if(result != null){
+            r.sort(function(a, b) { 
+                return a.id - b.id ;
+            });
+            //console.log(r);
+        }
+        res.json({result : r})
     })
 })
 router.put("/cartQty", function(req, res){
@@ -164,7 +189,8 @@ router.put("/cartQty", function(req, res){
                             productId : JSON_RESULT[pos].productId,
                             productData : JSON_RESULT[pos].productData,
                             quantity : JSON_RESULT[pos].quantity + 1,
-                            total : unitPrice * (JSON_RESULT[pos].quantity + 1)
+                            total : unitPrice * (JSON_RESULT[pos].quantity + 1),
+                            id:JSON_RESULT[pos].id
                         }
                     }else{
                         _t.push(JSON_RESULT[pos])
@@ -194,7 +220,8 @@ router.put("/cartQty", function(req, res){
                             productId : JSON_RESULT[pos].productId,
                             productData : JSON_RESULT[pos].productData,
                             quantity : JSON_RESULT[pos].quantity - 1,
-                            total : unitPrice * (JSON_RESULT[pos].quantity - 1)
+                            total : unitPrice * (JSON_RESULT[pos].quantity - 1),
+                            id:JSON_RESULT[pos].id
                         }
                     }else{
                         _t.push(JSON_RESULT[pos])

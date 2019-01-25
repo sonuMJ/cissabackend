@@ -58,6 +58,8 @@ router.post("/register",[
                 }
                 // check is exists
                 db.query(SELECT_ID_BY_EMAIL_FROM_USERDB, [input.email],function(err, result){
+                    console.log(result);
+                    
                     if(result == ""){
                         //insert into database
                         db.query("INSERT INTO user SET ?", [data], function(err,fetchArray){
@@ -69,7 +71,7 @@ router.post("/register",[
                             res.status(200).json({message : "Please verify your account! verification link sended to your account!"});
                         })
                     }else{
-                        res.json({message:"User Already Exists!!"})
+                        res.status(404).json({message:"Already registered with this Email ID!!"})
                     }
                 })
             }, 100);

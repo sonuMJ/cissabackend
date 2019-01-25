@@ -124,35 +124,58 @@ router.post("/send",
             check('translated').isLength({max : 20})
         ]
         , function(req, res){
-            var input = req.body;
-            var data = {
-                name:input.name,
-                category_id: input.category_id,
-                price:input.price,
-                quantity:input.quantity,
-                img_url: input.img_url,
-                availability: input.availability,
-                product_id: input.product_id,
-                translated : input.translated
-            }
-            if(data.product_id == ""){
-                data.product_id = misc.RandomProductID();
-            }
-            console.log('====================================');
-            console.log(data);
-            console.log('====================================');
-            const error = validationResult(req);
-                if(!error.isEmpty()){
-                    res.status(422).json({errors : error.array()})
-                }else{
-                    db.query("INSERT INTO products SET ?",[data], function(err, result){
-                        if(err){
-                            console.log(err);
-                            res.json({message : "Failed to add product!"});
+            var token = req.headers.token;
+            var session = req.headers.sessionid;
+            var validToken = jwt.JWTVerify(token);
+            if(validToken){
+                var jwtParse = jwt.JWTParse(token);
+                var JWT_SESSION = jwtParse[0].csrf;
+                var ROLE = jwtParse[0].role;
+                if(JWT_SESSION === session){
+                    if(ROLE == "admin"){
+                        var input = req.body;
+                        var data = {
+                            name:input.name,
+                            category_id: input.category_id,
+                            price:input.price,
+                            quantity:input.quantity,
+                            img_url: input.img_url,
+                            availability: input.availability,
+                            product_id: input.product_id,
+                            translated : input.translated
                         }
-                        res.status(200).json({message : "Product successfully added!"});
-                    })
+                        if(data.product_id == ""){
+                            data.product_id = misc.RandomProductID();
+                        }
+                        console.log('====================================');
+                        console.log(data);
+                        console.log('====================================');
+                        const error = validationResult(req);
+                            if(!error.isEmpty()){
+                                res.status(422).json({errors : error.array()})
+                            }else{
+                                db.query("INSERT INTO products SET ?",[data], function(err, result){
+                                    if(err){
+                                        console.log(err);
+                                        res.json({status:"Failed", message : "Failed to add product!"});
+                                    }
+                                    res.status(200).json({status:"Success", message : "New product added!"});
+                                })
+                            }
+                    }
+                    else{
+                        res.status(200).json({status:"Failed", message : "Permission Denied !"});
+                    }
+
                 }
+                else{
+                    res.sendStatus(404);
+                }
+            }
+            else{
+                res.sendStatus(404);
+            }
+
             
 })
 
@@ -185,54 +208,118 @@ router.post("/upload",function(req,res){
 
 //update product
 router.put("/:id", function(req, res){
-    var id = req.params.id;
-    var input = req.body;
-    var data = {
-        name:input.name,
-        category_id: input.category_id,
-        price:input.price,
-        quantity:input.quantity,
-        img_url: input.img_url,
-        translated : input.translated
-    }
-    db.query("UPDATE products set ? WHERE product_id = ?",[data,id], function(err, result){
-        if(err){
-            console.log(err);
-            res.json({message:"Somthing went wrong!"});
+    var token = req.headers.token;
+    var session = req.headers.sessionid;
+    var validToken = jwt.JWTVerify(token);
+    if(validToken){
+        var jwtParse = jwt.JWTParse(token);
+        var JWT_SESSION = jwtParse[0].csrf;
+        var ROLE = jwtParse[0].role;
+        if(JWT_SESSION === session){
+            if(ROLE == "admin"){
+                var id = req.params.id;
+                var input = req.body;
+                var data = {
+                    name:input.name,
+                    category_id: input.category_id,
+                    price:input.price,
+                    quantity:input.quantity,
+                    img_url: input.img_url,
+                    translated : input.translated
+                }
+                db.query("UPDATE products set ? WHERE product_id = ?",[data,id], function(err, result){
+                    if(err){
+                        console.log(err);
+                        res.json({status:"Failed",message:"Somthing went wrong!"});
+                    }
+                    res.status(200).json({status:"Success",message : "Product updated successfully!"});
+                })
+            }
+            else{
+                res.status(200).json({status:"Failed", message : "Permission Denied !"});
+            }
         }
-        res.status(200).json({message : "Product updated successfully!"});
-    })
+        else{
+            res.sendStatus(404);
+        }
+    }
+    else{
+        res.sendStatus(404);
+    }
 })
 
 //update availability
 router.put("/availability/:id", function(req, res){
-    var id = req.params.id;
-    var status = req.body.status;
-    var av = "";
-    if(status){
-        av = "true";
-    }else{
-        av = "false";
-    }
-    db.query("UPDATE products set availability = ? WHERE product_id = ?", [av, id], function(err, result){
-        if(err){
-            res.json({message:"Somthing went wrong!"});
+    var token = req.headers.token;
+    var session = req.headers.sessionid;
+    var validToken = jwt.JWTVerify(token);
+    if(validToken){
+        var jwtParse = jwt.JWTParse(token);
+        var JWT_SESSION = jwtParse[0].csrf;
+        var ROLE = jwtParse[0].role;
+        if(JWT_SESSION === session){
+            if(ROLE == "admin"){
+            var id = req.params.id;
+            var status = req.body.status;
+            var av = "";
+            if(status){
+                av = "true";
+            }else{
+                av = "false";
+            }
+            db.query("UPDATE products set availability = ? WHERE product_id = ?", [av, id], function(err, result){
+                if(err){
+                    res.json({message:"Somthing went wrong!"});
+                }
+                res.status(200).json({status:"Success",message : "Availibility changed!"})
+            })
         }
-        res.status(200).json({message : "Successfully Changed!"})
-    })
+        else{
+            res.status(200).json({status:"Failed", message : "Permission Denied !"});
+        }
+    }
+    else{
+        res.sendStatus(404);
+    }
+}
+else{
+    res.sendStatus(404);
+}
 })
 
 
 
 //delete products
 router.delete("/:id", function(req, res){
-    var id = req.params.id;
-    db.query("DELETE FROM products WHERE product_id = ?", [ id ], function(err, results){
-        if(err){
-            res.json({message:"Something went wrong!"});
+    var token = req.headers.token;
+    var session = req.headers.sessionid;
+    var validToken = jwt.JWTVerify(token);
+    if(validToken){
+        var jwtParse = jwt.JWTParse(token);
+        var JWT_SESSION = jwtParse[0].csrf;
+        var ROLE = jwtParse[0].role;
+        if(JWT_SESSION === session){
+            if(ROLE == "admin"){
+                var id = req.params.id;
+                db.query("DELETE FROM products WHERE product_id = ?", [ id ], function(err, results){
+                    if(err){
+                        res.json({message:"Something went wrong!"});
+                    }
+                    res.status(200).json({status:"Success",message : "Successfully Deleted!"})
+                })
+            }
+            else{
+                res.status(200).json({status:"Failed", message : "Permission Denied !"});
+            }
         }
-        res.status(200).json({message : "Successfully Deleted!"})
-    })
+        else{
+            res.sendStatus(404);
+        }
+    }
+    else{
+        res.sendStatus(404);
+    }
+
 })
 
 //store multiple products
@@ -306,7 +393,7 @@ router.post("/orderproducts", function(req, res){
                                     userid: USER_ID,
                                     date:d.getTime(),
                                     scheduled_date:scheduledDate,
-                                    status:"not delivered"
+                                    status:"Not Delivered"
                                 }
                                 db.query("INSERT INTO orders SET ?", [orderData], function(err, result){
                                     if(err){
@@ -430,7 +517,7 @@ router.post("/reorder", function(req, res){
                                     userid: USER_ID,
                                     date:d.getTime(),
                                     scheduled_date:scheduledDate,
-                                    status:"not delivered"
+                                    status:"Not Delivered"
                                 }
                                 db.query("INSERT INTO orders SET ?", [orderData], function(err, result){
                                     if(err){
