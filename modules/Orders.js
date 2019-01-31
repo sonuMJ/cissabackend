@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const jwt = require("../security/Jwt");
 const db = require("../db/dbconnection");
+const mail = require('../Mail/MailService');
+const dbservice = require('../db/Dbservice');
 
 //get all orders by user id
 router.post("/orderbyid", function(req, res){
@@ -81,18 +83,58 @@ router.post("/cancelorder", function(req, res){
     if(TOKEN != undefined && SESSIONID != undefined){
         var valid_token = jwt.JWTVerify(TOKEN);
         var TOKEN_DATA = jwt.JWTParse(TOKEN);
-        var cancelStatus = "cancelled";
+        var cancelStatus = "Cancelled";
+        console.log(TOKEN_DATA);
         if(valid_token){
-            //update status
-            db.query("UPDATE orders set status = ? WHERE orderid = ? ", [cancelStatus, orderid], function(err, result){
-                if(!err){
-                    res.json({message:"Order successfully cancelled"});
-                }else{
-                    console.log(err);
-                    
-                    res.json({message:"Something went wrong!!"});
-                }
-            })
+            var csrf = TOKEN_DATA[0].csrf;
+            var userId = TOKEN_DATA[0]._i;
+            if(csrf === SESSIONID){
+                var userDetails = dbservice.UserdetailsById(userId);
+                var username=''
+                var email='';
+                setTimeout(() => {
+                    if(userDetails[0] != ""){
+                        userDetails.map(i => {
+                            username = i[0].username,
+                            email = i[0].email
+                            
+                        })
+                    }
+                    //update status
+                    db.query("UPDATE orders set status = ? WHERE orderid = ?", [cancelStatus, orderid], function(err, result){
+                        if(!err){
+                            setTimeout(() => {
+                                console.log(username + "" + email);
+                                    var emailData = [];
+                                    db.query("SELECT products.name, order_details.quantity,products.price,order_details.quantity * products.price as 'total' FROM orders INNER JOIN order_details ON orders.orderid=order_details.orderid INNER JOIN products ON order_details.productid = products.product_id WHERE orders.orderid = ?", [orderid], function(err, array){
+                                        
+                                        if(!err){
+                                            emailData.push(array);
+                                        }
+                                    })
+                                    setTimeout(() => {
+                                        var emailParseData = JSON.parse(JSON.stringify(emailData[0]));
+                                        var totalPrice = 0;
+                                        emailParseData.map(item => {
+                                            totalPrice += parseInt(item.total);
+                                        })
+                                        mail.OrdercancelMail(email,username,orderid,emailParseData,totalPrice);
+                                    }, 100);
+                                   
+                                }, 1000);
+                                //response
+                            res.json({message:"Order successfully cancelled"});
+                        }else{
+                            console.log(err);
+                            
+                            res.json({message:"Something went wrong!!"});
+                        }
+                    })
+
+                }, 100);
+            }else{
+                res.json({message: "Failed to cancel order!!"});
+            }
         }else{
             res.json({message: "Failed to cancel order!!"});
         }

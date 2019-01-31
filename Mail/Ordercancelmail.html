@@ -11,36 +11,13 @@
     padding: 21px; font-family: sans-serif;letter-spacing: 0.5px;">
             <div>logo</div>
             <div  style="float: right;"><span style="font-size: 22px;float: right;">Order Conformation </span><br><span style="font-size: 22px;float: right;">#{{orderid}}</span></div>
-            <div style="margin-top: 150px;"><b style="color: red; font-size: 22px;">Hello {{username}},</b> <br><p style="width: 762px;border-bottom: 1px solid black; padding-bottom: 20px;">Thank you for your order. We’ll send a confirmation when your order ships. Your estimated delivery date is indicated below. If you would like to view the status of your order or make any changes to it, please visit Your Orders on Cissaorganics.com.</p></div>
-            <div>
-                <table style="border: none;">
-                    <tr>
-                        <th style="width: 540px;text-align:left;">Estimating Pick up</th>
-                        <th style="width: 540px;text-align: right;">Store Address</th>
-                    </tr>
-                    <tr>
-                        <td>{{s_date}}</td>
-                        
-                        <td style="text-align: right;">
-                            Vazhuthacud<br>
-                            Trivandrum<br>
-                            675005
-                        </td>
-                    </tr>
-                </table>
-            </div>
-            <div>
-                    <p style="border-bottom: 1px solid black;"><b>Order Details</b></p>
-               <p><b>Order #{{orderid}} </b><br>
-Placed on {{Time}}</p> 
-                    
-            </div>
-            <ul>
-                {{#each data.tags}}
-                  <li>{{this}}</li>
-                {{/each}}
-              </ul>
+            <div style="margin-top: 150px;"><b style="color: red; font-size: 22px;">Hello {{username}},</b> <br><p style="width: 762px;border-bottom: 1px solid black; padding-bottom: 20px;">
+                <h2>YOUR ITEM(S) HAS BEEN CANCELLED</h2>
+                We hereby inform you that your order #{{orderid}} has been cancelled.</p>
+                <p> please visit Your Orders on Cissaorganics.com.</p></div>
+            
             <div style="border: none; border-bottom: 1px solid black;">
+                <h3>Cancelled item(s)</h3>
             <table style="width:100%">
                 <thead style="background-color: #ccc">
                     <td style="width:50%">Item</td>

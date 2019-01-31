@@ -35,6 +35,7 @@ router.post("/register",[
         check("username").isLength({min:2, max:30}).not().isEmpty(),
         check("email").isLength({min:5, max:40}).not().isEmpty().isEmail(),
         check("password").isLength({min:8, max:30}).not().isEmpty(),
+        check("referral").isLength({min:2, max:20}),
     ], function(req, res){
     var input = req.body;
     var usr_id = misc.RandomIdGen();
@@ -54,11 +55,12 @@ router.post("/register",[
                     email: input.email,
                     password: results,
                     user_id: parseInt(usr_id),
-                    verification_code:Verif_code
+                    verification_code:Verif_code,
+                    referral_code : input.referral
                 }
                 // check is exists
                 db.query(SELECT_ID_BY_EMAIL_FROM_USERDB, [input.email],function(err, result){
-                    console.log(result);
+                    console.log(result.length);
                     
                     if(result == ""){
                         //insert into database
@@ -152,49 +154,42 @@ router.get("/getusernamebytoken", function(req, res){
 })
 
 router.get("/sendmail", function(req, res){
-    var data = [
-        {
-            "name": "Onion",
-            "quantity": "4",
-            "price": "36"
-        },
-        {
-            "name": "Beans",
-            "quantity": "12",
-            "price": "24"
-        },
-        {
-            "name": "Carrot",
-            "quantity": "2",
-            "price": "50"
-        }
-    ]
-    //var dd = dbservice.OrderdetailsForemailbyOrderid("1800899637193");
-    
-    //mailService.Orderpurchase("sonu.sowibo@gmail.com","sonu","123456789","12 thu 2018",data);
-    var d = new Date();
-    var s_date = new Date(1548659812993); 
-    var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    var month = months[s_date.getMonth()];
-    var full_s_date = s_date.getDate() + " " + month + " " +s_date.getFullYear();
-        res.json(full_s_date);
+   
+    var emailData = [];
+        db.query("SELECT products.name, order_details.quantity,products.price,order_details.quantity * products.price as 'total' FROM orders INNER JOIN order_details ON orders.orderid=order_details.orderid INNER JOIN products ON order_details.productid = products.product_id WHERE orders.orderid = ?", ['1800215250639'], function(err, array){
+            
+            if(!err){
+                emailData.push(array);
+            }
+            
+        })
+        setTimeout(() => {
+            var emailParseData = JSON.parse(JSON.stringify(emailData[0]));
+            console.log(emailParseData);
+            var totalPrice = 0;
+            emailParseData.map(i => {
+                console.log(i.total);
+                totalPrice += parseInt(i.total);
+            })
+            console.log(totalPrice);
+            
+        },100)
     
 })
 
 router.post("/resetpasswordmail", function(req,res){
     var email = req.body.email;
     if(email != ""){
-        db.query("SELECT * FROM user WHERE email = ?", [email], function(err, result){
+        db.query("SELECT * FROM user WHERE email = ? AND verified = 'true'", [email], function(err, result){
             if(result != ""){
-
-                mailService.resetPassword(email,result[0].verification_code)
+                mailService.resetPassword(email,result[0].verification_code);
                 res.status(200).json({message:"Password reset link sended to your email account"});
             }else{
-                res.sendStatus(404);
+                res.status(404).json({message:"We were unable to find an account linked to this email"});
             }
         })
     }else{
-        res.sendStatus(404);
+        res.status(404).json({message:"Please provide a email"});
     }
 })
 

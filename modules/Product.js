@@ -393,7 +393,7 @@ router.post("/orderproducts", function(req, res){
                                     userid: USER_ID,
                                     date:d.getTime(),
                                     scheduled_date:scheduledDate,
-                                    status:"Not Delivered"
+                                    status:"Pending Delivery"
                                 }
                                 db.query("INSERT INTO orders SET ?", [orderData], function(err, result){
                                     if(err){
@@ -431,20 +431,17 @@ router.post("/orderproducts", function(req, res){
                                                     })
                                                     setTimeout(() => {
                                                         var emailParseData = JSON.parse(JSON.stringify(emailData[0]));
-
-                                                        mail.Orderpurchase(email,username,orderId, time,full_s_date,emailParseData);
+                                                        var totalPrice = 0;
+                                                        emailParseData.map(item => {
+                                                            totalPrice += parseInt(item.total);
+                                                        })
+                                                        mail.Orderpurchase(email,username,orderId, time,full_s_date,emailParseData,totalPrice);
                                                     }, 100);
                                                    
                                                 }, 1000);
                                             
                                             }
                                         }, 200);
-                                        
-                                        
-                                        
-                                        
-                                        
-                                        
 
                                         //response
                                         res.json({message: "Successfully Purchased!!",statuscode:200});
@@ -517,12 +514,50 @@ router.post("/reorder", function(req, res){
                                     userid: USER_ID,
                                     date:d.getTime(),
                                     scheduled_date:scheduledDate,
-                                    status:"Not Delivered"
+                                    status:"Pending Delivery"
                                 }
                                 db.query("INSERT INTO orders SET ?", [orderData], function(err, result){
                                     if(err){
                                         res.json({message: "Failed to add orders!!"});
                                     }else{
+                                        var userDetails = dbservice.UserdetailsById(USER_ID);
+                                        setTimeout(() => {
+                                            var username=''
+                                            var email='';
+                                            if(userDetails[0] != ""){
+                                                userDetails.map(i => {
+                                                    username = i[0].username,
+                                                    email = i[0].email
+                                                    
+                                                })
+                                                var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+                                                var month = months[d.getMonth()];
+                                                var time = d.getDate() +" "+month + " "+d.getFullYear();
+                                                var s_date = new Date(scheduledDate); 
+                                                var s_month = months[s_date.getMonth()];
+                                                var full_s_date = s_date.getDate() + " " + s_month + " " +s_date.getFullYear();
+                                                
+                                                setTimeout(() => {
+                                                    var emailData = [];
+                                                    db.query("SELECT products.name, order_details.quantity,products.price,order_details.quantity * products.price as 'total' FROM orders INNER JOIN order_details ON orders.orderid=order_details.orderid INNER JOIN products ON order_details.productid = products.product_id WHERE orders.orderid = ?", [orderId], function(err, array){
+                                                        
+                                                        if(!err){
+                                                            emailData.push(array);
+                                                        }
+                                                    })
+                                                    setTimeout(() => {
+                                                        var emailParseData = JSON.parse(JSON.stringify(emailData[0]));
+                                                        var totalPrice = 0;
+                                                        emailParseData.map(item => {
+                                                            totalPrice += parseInt(item.total);
+                                                        })
+                                                        mail.Orderpurchase(email,username,orderId, time,full_s_date,emailParseData,totalPrice);
+                                                    }, 100);
+                                                   
+                                                }, 1000);
+                                            
+                                            }
+                                        }, 200);
                                         res.json({message:"Successfully Re-ordered your purchase!!"})
                                     }
                                 })
