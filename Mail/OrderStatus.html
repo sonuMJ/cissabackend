@@ -12,30 +12,30 @@
                 <div style="text-align:center">
                         <img src="cid:logo@cissa.ee" width="85"/>
                     </div>
-                    <div  style="float: right;"><p style="font-size: 21px;">{{status}} Confirmation <br>{{data.orderid}}</p></div>
-                    <div style="margin-top: 115px;"><b style="font-size: 22px;">Hello {{data.username}},</b> <br><p style="padding-bottom: 20px;">Thank you for shopping with us. Product has been picked up from one of our stores.<br><br>
-                        For further assistance please contact:</p></div>
+                    <div  style="float: right;"><p style="font-size: 21px;">{{status}} Confirmation <br>{{orderid}}</p></div>
+                    <div style="margin-top: 115px;"><b style="font-size: 22px;">Hello {{username}},</b> <br><p style="padding-bottom: 20px;">Thank you for shopping with us. Your order #{{orderid}} has been successfully fulfilled.<br><br>
+                        For further assistance please contact customer support.</p></div>
             </div>
             <div style="color: black">
                 <p style="border-bottom: 1px solid black;"><b>{{status}} Details</b></p>
                 <table style="border: none;">
                     <tr>
-                        <th style="width: 540px;text-align:left;">Picked Up:</th>
+                        <th style="width: 540px;text-align:left;text-transform:capitalize">{{status_past}}</th>
                         <th style="width: 540px;text-align: right;">Store Address</th>
                     </tr>
                     <tr>
-                        <td>Wednesday, Time</td>
+                        <td>{{s_date}}</td>
                         <td style="text-align: right;">USRA-55, Udarasiromani Rd, Vellayambalam, Thiruvananthapuram, Kerala 695010</td>
                     </tr>
                 </table>
             </div>
             <div style="color: black">
                     <p style="border-bottom: 1px solid black;"><b>Order Details</b></p>
-               <p><b>Order #{{data.orderid}} </b><br>Order placed on: {{data.date}}</p> 
+               <p><b>Order #{{orderid}} </b><br>Order placed on: {{Time}}</p> 
                     
             </div>
             <div style="border: none; border-bottom: 1px solid black; color: black;">
-            <table>
+            <table style="width:100%"> 
                 <thead style="background-color: #ccc">
                     <td>Item</td>
                     <td>Price</td>

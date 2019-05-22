@@ -23,6 +23,14 @@ module.exports = {
     RandomCategoryID : function(){
         var randomID = "C_"+Math.random().toString(36).substring(2, 6) +"-"+ Math.random().toString(36).substring(2, 15);
         return randomID;
+    },
+	RandomPermissionID : function(){
+        var randomID = "p_"+Math.random().toString(36).substring(2, 6) +"-"+ Math.random().toString(36).substring(2, 15);
+        return randomID;
+    },
+    RandomAdminID : function(){
+        var randomID = "A_"+Math.random().toString(36).substring(2, 6) +"-"+ Math.random().toString(36).substring(2, 15);
+        return randomID;
     }
 }
 

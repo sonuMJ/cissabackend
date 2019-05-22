@@ -22,11 +22,11 @@ router.delete("/_cdel", function(req, res){
 })
 
 router.post("/addCart", function(req, res){
-    var cartNumber;
+	var cartNumber;
     var exist = false;
     var JSON_result;
     var checkQuantity = false;
-    const MAX_QTY = 5;
+    const MAX_QTY = 10;
     var position;
     var product_details = "";
     /*
@@ -55,7 +55,7 @@ router.post("/addCart", function(req, res){
             productData: product_details,
             quantity:1,
             total: itemPrice,
-            id:1
+			id:1
         }
         client.get(KEY, function(err, result){
             if(err){
@@ -70,15 +70,10 @@ router.post("/addCart", function(req, res){
                     var newItem;
                     if(result){
                         JSON_result = JSON.parse(result);
-                        console.log(JSON_result);
-                        
                         Object.keys(JSON_result).map((item,pos) => {
                             cartNumber = JSON_result.length;
                             
-                            
-                            
                             if(JSON_result[pos].productId == product_id){
-                                console.log(JSON_result[pos].id);
                                 var q = JSON_result[pos].quantity;
                                 //maximum quantity
                                 if(q >= MAX_QTY){
@@ -94,7 +89,7 @@ router.post("/addCart", function(req, res){
                                         productData : JSON_result[pos].productData,
                                         quantity : MAX_QTY,
                                         total : itemPrice * (JSON_result[pos].quantity),
-                                        id:JSON_result[pos].id
+										id:JSON_result[pos].id
                                     }
                                 }else{
                                     newItem = {
@@ -102,7 +97,7 @@ router.post("/addCart", function(req, res){
                                         productData : JSON_result[pos].productData,
                                         quantity : parseInt(JSON_result[pos].quantity) + 1,
                                         total : itemPrice * (JSON_result[pos].quantity + 1),
-                                        id:JSON_result[pos].id
+										id:JSON_result[pos].id
                                     }
                                 }
                                 
@@ -152,13 +147,11 @@ router.post("/showCart", function(req, res){
         if(err){
             console.log(err);
         }
-        //console.log(JSON.parse(result));
         var r = JSON.parse(result);
         if(result != null){
             r.sort(function(a, b) { 
                 return a.id - b.id ;
             });
-            //console.log(r);
         }
         res.json({result : r})
     })
@@ -168,6 +161,7 @@ router.put("/cartQty", function(req, res){
     var KEY = req.headers._cid;
     var product_id = req.body.product_id;
     var operation = req.body.operation;
+    var G_quantity = req.body.quantity;
     var JSON_RESULT;
     var exist = false;
     var newItem;
@@ -188,8 +182,8 @@ router.put("/cartQty", function(req, res){
                         newItem = {
                             productId : JSON_RESULT[pos].productId,
                             productData : JSON_RESULT[pos].productData,
-                            quantity : JSON_RESULT[pos].quantity + 1,
-                            total : unitPrice * (JSON_RESULT[pos].quantity + 1),
+                            quantity : parseInt(JSON_RESULT[pos].quantity) + 1,
+                            total : unitPrice * (parseInt(JSON_RESULT[pos].quantity) + 1),
                             id:JSON_RESULT[pos].id
                         }
                     }else{
@@ -219,8 +213,8 @@ router.put("/cartQty", function(req, res){
                         newItem = {
                             productId : JSON_RESULT[pos].productId,
                             productData : JSON_RESULT[pos].productData,
-                            quantity : JSON_RESULT[pos].quantity - 1,
-                            total : unitPrice * (JSON_RESULT[pos].quantity - 1),
+                            quantity : parseInt(JSON_RESULT[pos].quantity) - 1,
+                            total : unitPrice * (parseInt(JSON_RESULT[pos].quantity) - 1),
                             id:JSON_RESULT[pos].id
                         }
                     }else{
@@ -234,6 +228,37 @@ router.put("/cartQty", function(req, res){
             }
             client.set(KEY, JSON.stringify(_t), redis.print);
             res.json({message : "Successfully removed from cart"})
+        })
+    }else if(operation === "MANUAL"){
+        client.get(KEY, function(err, result){
+            if(err){
+                console.log(err);
+            }
+            JSON_RESULT = JSON.parse(result);
+            if(result != null){
+                Object.keys(JSON_RESULT).map((item, pos) => {
+                    if(JSON_RESULT[pos].productId == product_id){
+                        exist = true;
+                        unitPrice = JSON_RESULT[pos].productData[0].price;
+                        position = JSON_RESULT.indexOf(JSON_RESULT[pos]);
+                        newItem = {
+                            productId : JSON_RESULT[pos].productId,
+                            productData : JSON_RESULT[pos].productData,
+                            quantity : G_quantity,
+                            total : unitPrice * (G_quantity),
+                            id:JSON_RESULT[pos].id
+                        }
+                    }else{
+                        _t.push(JSON_RESULT[pos])
+                    }
+                })
+            }
+            if(exist){
+                JSON_RESULT.splice(position, 1, newItem);
+                _t.push(JSON_RESULT[position]);
+            }
+            client.set(KEY, JSON.stringify(_t), redis.print);
+            res.json({message : "Successfully Added to cart"})
         })
     }
 })
